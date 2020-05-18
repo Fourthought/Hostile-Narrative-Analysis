@@ -1,10 +1,8 @@
 # Conflict Narrative Detection Pipeline - CND Pipeline
 
-Guided by theories of violence from Peace Studies, this phD research proposes a natural language processing (NLP) spaCy pipeline to enable an idea of “Conflict Narrative Detection”.
+Guided by theories of violence from Peace Studies, this PhD research proposes a natural language processing (NLP) spaCy pipeline to enable an idea of “Conflict Narrative Detection”.
 
-In conceptualising Conflict Narrative Detection, we are guided by sociological theory for technological design. The defining theory we use is “cultural violence”, which seeks to explain the processes of violence legitimisation. Derived from this theory we have developed
-a novel methodology for detecting and measuring cultural violence in natural language. This methodology is then used as a structure
-for the proposed NLP pipeline for which we have conducted several experiments to inform its technical development.
+In conceptualising Conflict Narrative Detection, we are guided by sociological theory for technological design. The defining theory we use is “cultural violence”, which seeks to explain the processes of violence legitimisation. Derived from this theory, we have developed a novel methodology for detecting and measuring cultural violence in natural language. This methodology provides a structure for the proposed NLP pipeline for which we have conducted several experiments to inform its technical development.
 
 The methodology and experimentation are structured are as follows (to be updated as the research develops):
 
@@ -29,11 +27,15 @@ The methodology and experimentation are structured are as follows (to be updated
 | Obj 4.        | Infer intergroup differentiation using measurement schema.|                                   |
 | ------------- | --------------------------------------------------------- | --------------------------------- |
 
-For developing the pipeline, we curated a dataset comprising Hitler’s “Mein Kampf”, Martin Luther King’s “I Have a Dream” speech, and political speeches from George Bush and Osama bin Laden during the “War on Terror”. With the exception of Luther King, these texts have been used for the legitimisation of violence to bring about change, therefore, they can be regarded as culturally violent. As he sought for non-violent change, the inclusion of Luther King may provide some insight into the variables of a text that make it culturally violent. For the experimentation, this dataset is used to create test data, and since the ingroup and outgroup of each are well understood, results can be assessed by observation.
+For developing the pipeline, we curated a dataset comprising Hitler’s “Mein Kampf”, Martin Luther King’s “I Have a Dream”, and political speeches from George Bush and Osama bin Laden during the “War on Terror”. Except for Luther King, these texts have been used for the legitimisation of violence to bring about change, therefore, they should be regarded as culturally violent. As he sought for non-violent change, the inclusion of Luther King as a control to the other speeches may provide some insight into the variables of a text that make it culturally violent. Since the ingroup and outgroup of each text are well understood, this dataset is a good source of test data since results can be assessed by observation.
+
+RThis research is funded by the Engineering and Physical Sciences Research Council (EPSCR) through the Web Science Doctoral Training Centre (DTC) at Southampton University. Supervisors:
+- Dr George Konstantinidis
+- Dr Craig Webber
 
 In developing this pipeline big thanks go to:
 - Mark Neumann
 - mmichelsonIF
-- especially the awesome explosion.ai team for creating the spaCy library without which none of this would be possible.
+- especially the excellent explosion.ai team for creating the spaCy library without which none of this would be possible.
 
-I have only been coding for 18 months, any suggestions, comments or feedback are very welcome.
+I have only been coding for 18 months; any suggestions, comments or feedback are very welcome.
