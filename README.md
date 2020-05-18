@@ -6,7 +6,7 @@ In conceptualising Conflict Narrative Detection, we are guided by sociological t
 a novel methodology for detecting and measuring cultural violence in natural language. This methodology is then used as a structure
 for the proposed NLP pipeline for which we have conducted several experiments to inform its technical development.
 
-The methodology and experimentation are structured are as follows:
+The methodology and experimentation are structured are as follows (to be updated as the research develops):
 
 | Objective #   | Objective                                                 | Technology Tests                  |
 | ------------- | --------------------------------------------------------- | --------------------------------- |
@@ -14,8 +14,8 @@ The methodology and experimentation are structured are as follows:
 | Obj 0.1       | tokenize texts                                            | spaCy Tokenizer                   |
 | Obj 0.2       | Tag texts                                                 | spaCy Tagger                      |
 | Obj 0.3       | Parse texts                                               | spaCy Depedency Parse             |
-| Obj 0.4       | Named Entity recognition                                  | spaCy ner                         |
-| Obj 0.5       | Named Concept recognition                                 | spaCy custom component            |
+| Obj 0.4       | Experiment 0.1 - Named Entity recognition                 | spaCy ner                         |
+| Obj 0.5       | Experiment 0.2 - Named Concept recognition                | spaCy custom component            |
 | ------------- | --------------------------------------------------------- | --------------------------------- |
 | Obj 1.        | Detect the ingroup and outgroup of an orator’s text       |                                   |
 |               | Experiment 1.1 - Sentiment Analysis                       | TextBlob, IBM Watson, GoogleNLU   |
