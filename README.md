@@ -29,7 +29,7 @@ The methodology and experimentation are structured are as follows (to be updated
 
 For developing the pipeline, we curated a dataset comprising Hitler’s “Mein Kampf”, Martin Luther King’s “I Have a Dream”, and political speeches from George Bush and Osama bin Laden during the “War on Terror”. Except for Luther King, these texts have been used for the legitimisation of violence to bring about change, therefore, they should be regarded as culturally violent. As he sought for non-violent change, the inclusion of Luther King as a control to the other speeches may provide some insight into the variables of a text that make it culturally violent. Since the ingroup and outgroup of each text are well understood, this dataset is a good source of test data since results can be assessed by observation.
 
-RThis research is funded by the Engineering and Physical Sciences Research Council (EPSCR) through the Web Science Doctoral Training Centre (DTC) at Southampton University. Supervisors:
+This research is funded by the Engineering and Physical Sciences Research Council (EPSCR) through the Web Science Doctoral Training Centre (DTC) at Southampton University. Supervisors:
 - Dr George Konstantinidis
 - Dr Craig Webber
 
