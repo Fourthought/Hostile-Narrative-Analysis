@@ -34,6 +34,6 @@ For developing the pipeline, we curated a dataset comprising Hitler’s “Mein 
 In developing this pipeline big thanks go to:
 - Mark Neumann
 - mmichelsonIF
-- especially the explosion.ai team for creating the spaCy library without which none of this would be possible.
+- especially the awesome explosion.ai team for creating the spaCy library without which none of this would be possible.
 
-I have only been coding for 18 months, any suggestions, comments or feedback is very welcome.
+I have only been coding for 18 months, any suggestions, comments or feedback are very welcome.
