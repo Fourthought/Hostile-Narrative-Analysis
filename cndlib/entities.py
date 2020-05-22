@@ -20,6 +20,13 @@ class Orator(object):
         
         self.fulltext = ""
 
+    def __iter__(self):
+
+        """
+        returns iterator of orators in the dataset
+        """
+        return iter(text for text in self.texts)
+
     def __len__(self):
         
         """
@@ -34,6 +41,10 @@ class Orator(object):
         """
         
         pass
+
+    def __getitem__(self, indx):
+        return(self.texts[indx])
+
     
 class Text(object):
     
@@ -41,21 +52,17 @@ class Text(object):
     this object will become the Text object
     """
     
-    def __init__(self):
+    def __init__(self, orator = '', title = '', date = '', filepath = '', text = ''):
         
-        self.orator = ""
+        self.orator = orator
         
-        self.title = ""
+        self.title = title
         
-        self.date = ""
+        self.date = date
         
-        self.location = ""
+        self.filepath = filepath
         
-        self.filepath = ""
-        
-        self.text = ""
-        
-        self.texttype = ""
+        self.text = text
 
 # access the speeches directory
 class Dataset(object):
@@ -94,8 +101,14 @@ class Dataset(object):
                         with open(os.path.join(dirpath, orator_dir, file), 'r') as text:
 
                             if os.path.splitext(file)[1] == ".txt" and (file[:8]).isnumeric(): #check whether file meets speech filename format requirement
-                                self.orators_dict[surname].filenames.append(file)
-                                self.orators_dict[surname].texts.append(text.read())
+                                self.orators_dict[surname].texts.append(Text(
+                                    orator = surname,
+                                    title = file[8:],
+                                    date = file[:8],
+                                    text = text.read()
+
+                                ))
+                                
     def __getitem__(self, indx):
         return self.orators_dict[indx]
     
@@ -105,3 +118,4 @@ class Dataset(object):
         returns iterator of orators in the dataset
         """
         return iter(self.orators_dict[i] for i in self.orators_dict.keys())
+    
