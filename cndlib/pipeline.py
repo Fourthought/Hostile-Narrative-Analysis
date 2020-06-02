@@ -1,11 +1,13 @@
 ###
 # useful code reference for detecting ingroup, outgroup based on modifier terms
 # https://medacy.readthedocs.io/en/latest/_modules/medacy/pipeline_components/units/unit_component.html
+# contains the following:
+# - cna_pipe
+# - hearst patterns
 
+import spacy
 
 class cna_pipe(object):
-
-    import spacy
 
     def __init__(self):
         
@@ -27,8 +29,7 @@ class cna_pipe(object):
 
 class hearst_patterns(object):
     
-    """ 
-    hearst_patterns() is a class object used to detects hypernym relations to hyponyms in a text
+    """ Hearst Patterns is a class object used to detects hypernym relations to hyponyms in a text
     
     input: raw text
     returns: list of dict object with each entry all the hypernym-hyponym pairs of a text
@@ -38,8 +39,9 @@ class hearst_patterns(object):
     
     import spacy
     
-    def __init__(self, extended=False):
+    def __init__(self, nlp, extended=False, predicatematch = "basic"):
         
+       
 #     Included in each entry is the original regex pattern now adapted as a spaCy matcher pattern.
 #     Many of these patterns are in the same format, next iteration of code should include an
 #     automatic pattern generator for patterns.
@@ -55,6 +57,17 @@ class hearst_patterns(object):
       
         # make the patterns easier to read
         # as lexical understanding develops, consider adding attributes to dstinguish between hypernyms and hyponyms
+        self.nlp = nlp
+        
+        options = ["bronze", "silver", "gold"]
+        if predicatematch not in options:
+            entry = ""
+            while entry not in ["1", "2", "3"]: 
+                entry = input(f"1. {options[0]}, 2. {options[1]}, 3. {options[2]}")
+            self.predicatematch = options[int(entry) -1]
+        else:
+            self.predicatematch = predicatematch
+        
         hypernym = {"POS" : {"IN": ["NOUN", "PROPN"]}} 
         hyponym = {"POS" : {"IN": ["NOUN", "PROPN"]}}
         punct = {"IS_PUNCT": True, "OP": "?"}
@@ -73,7 +86,7 @@ class hearst_patterns(object):
              hypernym, punct, {"LEMMA": "know"}, {"LEMMA": "as"}, hyponym
         ], "posn" : "first"},
 
-        {"label" : "such_NOUN_as", "pattern" : [
+        {"label" : "such", "pattern" : [
 #                 '(such NP_\\w+ (, )?as (NP_\\w+ ?(, )?(and |or )?)+)',
 #                 'first'
              {"LEMMA": "such"}, hypernym, punct, {"LEMMA": "as"}, hyponym
@@ -91,10 +104,12 @@ class hearst_patterns(object):
              hypernym, punct, {"LEMMA" : "especially"}, hyponym
         ], "posn" : "first"},
 
-        {"label" : "and-or_other", "pattern" : [ ## problem - other is merged as a modifier in to a noun phrase
+        {"label" : "other", "pattern" : [
+#             problem: the noun_chunk, 'others' clashes with this rule to create a zero length chunk when predicate removed
 #                 '((NP_\\w+ ?(, )?)+(and |or )?other NP_\\w+)',
 #                 'last'
-             hyponym, punct, {"DEP": "cc"}, {"LEMMA" : "other"}, hypernym
+             hyponym, punct, {"LEMMA" : {"IN" : ["and", "or"]}}, {"LEMMA" : "other"}, hypernym
+#             There were bruises, lacerations, or other injuries were not prevalent."
         ], "posn" : "last"},
 
         ]
@@ -347,11 +362,11 @@ class hearst_patterns(object):
                 {"LEMMA" : "compare"}, hyponym, punct, {"LEMMA" : "with"}, hypernym
             ], "posn" : "last"},
 
-            {"label" : "as", "pattern" : [
-#                     '((NP_\\w+ ?(, )?)+(and |or )?as NP_\\w+)',
-#                     'last'
-                hyponym, punct, {"LEMMA" : "as"}, hypernym
-            ], "posn" : "last"},
+#             {"label" : "as", "pattern" : [
+# #                     '((NP_\\w+ ?(, )?)+(and |or )?as NP_\\w+)',
+# #                     'last'
+#                 hyponym, punct, {"LEMMA" : "as"}, hypernym
+#             ], "posn" : "last"},
 
             {"label" : "sort_of", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and|or)? sort of NP_\\w+)',
@@ -361,9 +376,21 @@ class hearst_patterns(object):
 
         ]),        
 
-    ## initiate matcher
+        ## initiate matcher
         from spacy.matcher import Matcher
-        self.matcher = Matcher(nlp.vocab, validate = True)
+        self.matcher = Matcher(self.nlp.vocab, validate = True)
+        
+        # added "some" to original list
+        self.predicate_list = [
+            'able', 'available', 'brief', 'certain',
+            'different', 'due', 'enough', 'especially', 'few', 'fifth',
+            'former', 'his', 'howbeit', 'immediate', 'important', 'inc',
+            'its', 'last', 'latter', 'least', 'less', 'likely', 'little',
+            'many', 'ml', 'more', 'most', 'much', 'my', 'necessary',
+            'new', 'next', 'non', 'old', 'other', 'our', 'ours', 'own',
+            'particular', 'past', 'possible', 'present', 'proud', 'recent',
+            'same', 'several', 'significant', 'similar', 'some', 'such', 'sup', 'sure'
+        ]
 
         self.predicates = []
         self.first = []
@@ -383,36 +410,81 @@ class hearst_patterns(object):
             # gather list of predicates where the hypernym appears last
             if pattern["posn"] == "last":
                 self.last.append(pattern["label"])
+                
+    def isPredicateMatch_bronze(self, noun_chunknoun_chunk, predicates):
+        
+        """
+        Bronze option to remove predicate phrases from noun_chunks using a predefined list of modifiers
 
-    def isPredicateMatch(self, chunk, predicates):
+        input: the chunk to be checked, list of predicate phrases
+        returns: the chnunk with predicate phrases removed.
 
         """
-        Function to remove predicate phrases from noun_chunks
+        counter = 0
+        while noun_chunknoun_chunk[counter].lemma_ in predicates:
+                counter += 1
+                
+        #remove empty spans, eg the noun_chunk 'others' becomes a zero length span
+        if len(noun_chunknoun_chunk[counter:]) == 0:
+            counter = 0
+                
+        return noun_chunknoun_chunk[counter:]
+    
+    def isPredicateMatch_silver(self, noun_chunk):
+        
+        """
+        Silver option to remove predicate phrases from noun_chunks using stop word list
+
+        input: the chunk to be checked, list of predicate phrases
+        returns: the chnunk with predicate phrases removed.
+
+        """
+        counter = 0
+        
+        while not noun_chunk[0].is_stop and noun_chunk[counter].is_stop:
+            counter += 1
+                
+#         #remove empty spans, eg the noun_chunk 'others' becomes a zero length span
+#         if len(chunk[counter:]) == 0:
+#             counter = 0
+        print(noun_chunk, "becomes: ", noun_chunk[counter:])        
+        return noun_chunk[counter:]
+
+    def isPredicateMatch_gold(self, noun_chunk, predicates):
+        
+        """
+        Gold option to remove predicate phrases from noun_chunks using pattern labels.
 
         input: the chunk to be checked, list of predicate phrases
         returns: the chnunk with predicate phrases removed.
 
         """
 
-        def match(empty, count, chunk, predicates):#
+        def match(empty, count, noun_chunk, predicates):
             # empty: check whether predicates list is empty
-            # chunk[count].lemma_ != predicates[0][-count]: checks convergence between chunk and predicate string, removes empty spans
-            # chunk[count].lemma_ == predicates[0][count]: check whether chunk term is equal to the predicates term
+            # count < len(predicates[0]): checks whether the count has reached the final token of the predicate
+            # chunk[count].lemma_ == predicates[0][count]: check whether chunk token is equal to the predicate token
+
             
-            while not empty and chunk[count].lemma_ != predicates[0][-count] and chunk[count].lemma_ == predicates[0][count]:
+            while not empty and count < len(predicates[0]) and noun_chunk[count].lemma_ == predicates[0][count]:
                 count += 1
+                
+            #remove empty spans, eg the noun_chunk 'others' becomes a zero length span
+            if len(noun_chunk[count:]) == 0:
+                count = 0
 
             return empty, count
     
-        def isMatch(chunk, predicates):
+        def isMatch(noun_chunk, predicates):
 
-            empty, counter = match(predicates == [], 0, chunk, predicates)
+            empty, counter = match(predicates == [], 0, noun_chunk, predicates)
             if empty or counter == len(predicates[0]):
-                return chunk[counter:]
+                #print(chunk, "becomes: ", chunk[counter:])
+                return noun_chunk[counter:]
             else:
-                return isMatch(chunk, predicates[1:])
+                return isMatch(noun_chunk, predicates[1:])
 
-        return isMatch(chunk, predicates)
+        return isMatch(noun_chunk, predicates)
     
     
     def find_hyponyms(self, text):
@@ -430,7 +502,7 @@ class hearst_patterns(object):
         if type(text) is spacy.tokens.doc.Doc:
             doc = text
         else:
-            doc = nlp(text) # initiate doc 
+            doc = self.nlp(text) # initiate doc 
             
         
         ## Pre-processing
@@ -446,10 +518,13 @@ class hearst_patterns(object):
 
                 attrs = {"tag": chunk.root.tag, "dep": chunk.root.dep}
 
-                retokenizer.merge(self.isPredicateMatch(chunk, self.predicates), attrs = attrs)
-
-                
-                
+                if self.predicatematch == "bronze":
+                    retokenizer.merge(self.isPredicateMatch_bronze(chunk, self.predicate_list), attrs = attrs)
+                elif self.predicatematch == "silver":
+                    retokenizer.merge(self.isPredicateMatch_silver(chunk), attrs = attrs)
+                elif self.predicatematch == "gold":
+                    retokenizer.merge(self.isPredicateMatch_gold(chunk, self.predicates), attrs = attrs)
+    
         ## Main Body
         #Find matches in doc
         matches = self.matcher(doc)
@@ -461,13 +536,17 @@ class hearst_patterns(object):
             return pairs
 
         for match_id, start, end in matches:
-            predicate = nlp.vocab.strings[match_id]
+            predicate = self.nlp.vocab.strings[match_id]
             
-            if predicate in self.last: # if the predicate is in the list where the hypernym is last
+            # if the predicate is in the list where the hypernym is last, else hypernym is first
+            if predicate in self.last: 
                 hypernym = doc[end - 1]
                 hyponym = doc[start]
             else:
-                hypernym = doc[start] # if the predicate is in the list where the hypernym is first
+                # an inelegent way to deal with the "such_NOUN_as pattern" since the first token is not the hypernym
+                if doc[start].lemma_ == "such":
+                    start += 1
+                hypernym = doc[start]
                 hyponym = doc[end - 1]
 
             # create a list of dictionary objects with the format:
@@ -477,8 +556,13 @@ class hearst_patterns(object):
             # "sent" : sentence in which the pairs originate
             # }
             
-            pairs.append(dict({"predicate" : predicate, 
-                               "pairs" : [(hypernym, hyponym)] + [(hypernym, token) for token in hyponym.conjuncts if token != hypernym],
-                               "sent" : (hyponym.sent.text).strip()}))
+#             pairs.append(dict({"predicate" : predicate, 
+#                                "pairs" : [(hypernym, hyponym)] + [(hypernym, token) for token in hyponym.conjuncts if token != hypernym],
+#                                "sent" : (hyponym.sent.text).strip()}))
+
+            pairs.append((hyponym.lemma_, hypernym.lemma_, predicate))  
+            for token in hyponym.conjuncts:   
+                if token != hypernym and token != None:
+                    pairs.append((token.lemma_, hypernym.lemma_, predicate))
 
         return pairs

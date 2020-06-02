@@ -1,34 +1,53 @@
-import sys
-for path in sys.path:
-    print(path)
+import pipeline
+import cndobjects
+import spacy
 
-sys.path.insert(0, r"C:\Users\Steve\OneDrive - University of Southampton\CNDPipeline")
+print('preparing pipeline')
+nlp = spacy.load("en_core_web_sm")
 
-#del(sys.path)[0]
+for component in nlp.pipe_names:
+    if component not in ['tagger', "parser", "ner"]:
+        nlp.remove_pipe(component)
 
+merge_ents = nlp.create_pipe("merge_entities")
+nlp.add_pipe(merge_ents)
 
-# from cndlib.pipeline import hearst_patterns
-# from cndlib import entities
-# import spacy
+import unittest
 
+class TestHearstPatterns(unittest.TestCase):
 
+	def test_hyponym_finder(self):
+		h = pipeline.hearst_patterns(nlp)
+		hyps1 =  h.find_hyponyms("Forty-four percent of patients with uveitis had one or more identifiable signs or symptoms, such as red eye, ocular pain, visual acuity, or photophobia, in order of decreasing frequency.")
 
-# print('preparing pipeline')
-# nlp = spacy.load("en_core_web_md")
+		self.assertEqual(hyps1[0], ("red eye", "symptom"))
+		self.assertEqual(hyps1[1], ("ocular pain", "symptom"))
+		self.assertEqual(hyps1[2], ("visual acuity", "symptom"))
+		self.assertEqual(hyps1[3], ("photophobia", "symptom"))
 
-# for component in nlp.pipe_names:
-#     if component not in ['tagger', "parser", "ner"]:
-#         self.nlp.remove_pipe(component)
+		hyps2 = h.find_hyponyms("There are works by such authors as Herrick, Goldsmith, and Shakespeare.")
+		self.assertEqual(hyps2[0], ("herrick", "author"))
+		self.assertEqual(hyps2[1], ("goldsmith", "author"))
+		self.assertEqual(hyps2[2], ("shakespeare", "author"))
+	
+		hyps3 = h.find_hyponyms("There were bruises, lacerations, or other injuries were not prevalent.")
+		self.assertEqual(hyps3[0], ("bruise", "injury"))
+		self.assertEqual(hyps3[1], ("laceration", "injury"))
 
-# merge_ents = nlp.create_pipe("merge_entities")
-# nlp.add_pipe(merge_ents)
+		hyps4 =  h.find_hyponyms("common law countries, including Canada, Australia, and England enjoy toast.")
+		self.assertEqual(hyps4[0], ("canada", "common law country"))
+		self.assertEqual(hyps4[1], ("australia", "common law country"))
+		self.assertEqual(hyps4[2], ("england", "common law country"))
 
-# print('generating database')
+		hyps5 = h.find_hyponyms("Many countries, especially France, England and Spain also enjoy toast.")
+		self.assertEqual(hyps5[0], ("france", "country"))
+		self.assertEqual(hyps5[1], ("england", "country"))
+		self.assertEqual(hyps5[2], ("spain", "country"))
 
-# dirpath  = r"C:\Users\Steve\OneDrive - University of Southampton\CNDPipeline\speeches"
+		hyps6 = h.find_hyponyms("There are such benefits as postharvest losses reduction, food increase and soil fertility improvement.")
+		self.assertEqual(hyps6[0], ("postharvest loss reduction", "benefit"))
+		self.assertEqual(hyps6[1], ("food increase", "benefit"))
+		self.assertEqual(hyps6[2], ("soil fertility improvement", "benefit"))
 
-# h = hearst_patterns(extended = True)
-# orators = entities.Dataset(dirpath)
-
-# for orator in orators:
-#     print(f'object {orator.ref} called {orator.name} has {len(orator)} speeches')
+if __name__ == '__main__':
+    unittest.main()
