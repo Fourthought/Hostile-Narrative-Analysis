@@ -149,6 +149,11 @@ class Dataset(object):
     def summary(self):
 
         index = {
-             "ref" : [orator.ref for orator in self.orators_dict.values()]
+            "ref" : [orator.ref for orator in self.orators_dict.values()],
+            "Name" : [orator.name for orator in self.orators_dict.values()],
+            "Text count" : [len(orator.texts) for orator in self.orators_dict.values()],
+            "Word count" : [len(orator.__repr__()) for orator in self.orators_dict.values()]
         }
+
+        display(visuals.display_table(index))
     
