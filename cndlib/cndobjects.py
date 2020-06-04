@@ -1,9 +1,13 @@
 import os
+from functools import reduce
+from datetime import date, datetime
+import visuals
+
 
 class Orator(object):
 
     """ 
-    This is the Orator object which refers to the person giving the speech
+    This is the object representation of an Orator
     """
 
     def __init__(self, ref = '', name = '', filepath = ''):
@@ -15,10 +19,29 @@ class Orator(object):
         self.filepath = filepath
 
         self.filenames = []
-
+   
         self.texts = []
-        
-        self.fulltext = ""
+
+        for _, _, filenames in os.walk(self.filepath): 
+            # iterate through the files
+            for file in filenames: 
+
+                if os.path.splitext(file)[1] == ".txt" and (file[:8]).isnumeric(): #check whether file meets speech filename format requirement
+                    self.texts.append(Text(surname = self.ref, 
+                                            title = file[9:-4], 
+                                            datestamp = date(int(file[0:4]), int(file[4:6]), int(file[6:8])), 
+                                            filename = os.path.join(self.filepath, file))
+                                            )
+
+    def __getitem__(self, indx):
+        if type(indx) is int:
+            return self.texts[indx]
+        if type(indx) is slice:
+            return self.texts[indx.start:indx.stop]
+
+    def __repr__(self):
+
+        return reduce(lambda a, b : str(a) + str(b), self.texts, '')
 
     def __iter__(self):
 
@@ -33,8 +56,8 @@ class Orator(object):
         returns the number of texts associated with the orator
         """
         return len(self.texts)
-    
-    def __add_text__(self):
+
+    def add_text(self):
         
         """
         holding function: will be developed to add a text to the Orator object
@@ -42,34 +65,55 @@ class Orator(object):
         
         pass
 
-    def __getitem__(self, indx):
-        return(self.texts[indx])
+    def summary(self):
 
-    
+        index = {
+            "Orator" : [text.surname for text in self.texts],
+            "Date" : [text.datestamp for text in self.texts],
+            "Title" : [text.title for text in self.texts],
+            "Word Count" : [len(str(text)) for text in self.texts]
+        }
+
+        display(visuals.display_table(index))
+
 class Text(object):
     
     """
-    this object will become the Text object
+    representation of the Text object
     """
     
-    def __init__(self, orator = '', title = '', date = '', filepath = '', text = ''):
+    def __init__(self, surname = '', title = '', datestamp = '', filepath = '', filename = ''):
         
-        self.orator = orator
+        self.surname = surname.title()
         
         self.title = title
         
-        self.date = date
+        self.datestamp = datestamp
         
         self.filepath = filepath
-        
-        self.text = text
+
+        self.filename = filename
+
+        self.reference = f'{self.surname} ({self.datestamp}) {self.title}'
+
+    def __repr__(self):
+
+        """
+        load representation of text from disc to save from holding text in memory.
+
+        inputs: filename
+        output: generator object of text
+        """
+
+        with open(self.filename, 'r') as t:
+            return t.read()
 
 # access the speeches directory
 class Dataset(object):
     
     """ 
     this function creates a dict of orator objects, with each orator object containing
-    associated speeches.
+    associated texts.
     
     format:
     
@@ -91,26 +135,9 @@ class Dataset(object):
                                                     ref = surname,
                                                     filepath = os.path.join(dirpath, orator_dir)
                                                    )
-
-                # get the filenames in each orators folder
-                for _, _, filenames in os.walk(self.orators_dict[surname].filepath): 
-
-                    # iterate through the files
-                    for file in filenames: 
-
-                        with open(os.path.join(dirpath, orator_dir, file), 'r') as text:
-
-                            if os.path.splitext(file)[1] == ".txt" and (file[:8]).isnumeric(): #check whether file meets speech filename format requirement
-                                self.orators_dict[surname].texts.append(Text(
-                                    orator = surname,
-                                    title = file[8:],
-                                    date = file[:8],
-                                    text = text.read()
-
-                                ))
                                 
-    def __getitem__(self, indx):
-        return self.orators_dict[indx]
+    def __getitem__(self, key):
+        return self.orators_dict[key]
     
     def __iter__(self):
 
@@ -118,4 +145,10 @@ class Dataset(object):
         returns iterator of orators in the dataset
         """
         return iter(self.orators_dict[i] for i in self.orators_dict.keys())
+
+    def summary(self):
+
+        index = {
+             "ref" : [orator.ref for orator in self.orators_dict.values()]
+        }
     
