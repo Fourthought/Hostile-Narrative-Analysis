@@ -68,7 +68,7 @@ class CND(object):
         #####
         # Doc extensions
         #####
-        Doc.set_extension("custom_chunks", getter=custom_chunks, force = True)
+        #Doc.set_extension("custom_chunks", getter=custom_chunks, force = True)
         Doc.set_extension("concepts", default = [], force = True)
         Doc.set_extension("ideologies", getter=get_doc_ideologies, force=True)
         
@@ -147,7 +147,7 @@ class ConceptMatcher(object):
 
     name = "Concept Matcher"  # component name, will show up in the pipeline
 
-    group_markup = "group_markup.json"
+    group_markup = "group_schema.json"
 
     ideologies = None
     group_schema = None
