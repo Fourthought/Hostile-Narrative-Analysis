@@ -9,6 +9,19 @@ from hurry.filesize import size
 from spacy import displacy
 from visuals import sent_frame
 
+class doubleQuoteDict(dict):
+    
+    """ 
+    function to create double quote entries for json objects
+    input: dict object
+    output: dict object with double quotes around keys and values
+    """
+    def __str__(self):
+        return json.dumps(self)
+
+    def __repr__(self):
+        return json.dumps(self)
+
 def get_object_size(data):
 
     """
@@ -134,7 +147,6 @@ class sent_select:
         ##########
         
         self.filepath = r"C:\Users\Steve\OneDrive - University of Southampton\CNDPipeline\dataset"
-        self.indx = dict()
         self.index = 0
         self.index_filepath = os.path.join(self.filepath, "index.json")
         try:
@@ -158,8 +170,6 @@ class sent_select:
         # iterate over input_dict until completion
         
         while self.index < len(input_dict):
-
-            # get the current progress through the dictionary object
 
             # record progress through dictionary object
             with open(self.index_filepath, "wb") as f:

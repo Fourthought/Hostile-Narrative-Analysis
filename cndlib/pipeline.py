@@ -60,7 +60,7 @@ class CND(object):
         # add concept matcher component to pipeline
         self.nlp.add_pipe(ConceptMatcher(self.nlp), after = "merge_entities") # add concepts
 
-        self.nlp.add_pipe(Group_ID(self.nlp), last = True) # add group id matcher
+        #self.nlp.add_pipe(Group_ID(self.nlp), last = True) # add group id matcher
 
         # # add merge named concepts to pipeline
         # self.nlp.add_pipe(merge_named_concepts, last = True)
@@ -202,19 +202,6 @@ class ConceptMatcher(object):
         merge entities code: https://github.com/explosion/spaCy/issues/4107
         filter code: https://github.com/explosion/spaCy/issues/4056
         """
-        with doc.retokenize() as retokenizer:
-
-            matches = self.matcher(doc)
-            for _, start, end in matches:
-                span = Span(doc, start, end)
-                for token in span:
-                    token._.outgroup = True
-                try:
-                    if len(span) > 1:
-                        retokenizer.merge(span)
-                except ValueError:
-                    pass
-                doc._.concepts = list(doc._.concepts) + [span]
 
         with doc.retokenize() as retokenizer:
 
@@ -224,13 +211,13 @@ class ConceptMatcher(object):
                 concept_id = self.nlp.vocab.strings[match_id]
                 
                 span._.CONCEPT = concept_id
-                span._.IDEOLOGY = self.get_ideology(span)
-                span._.ATTRIBUTE = self.get_attribute(span)
+                span._.IDEOLOGY = self.get_ideology(span._.CONCEPT.lower())
+                span._.ATTRIBUTE = self.get_attribute(span._.CONCEPT.lower())
                 
                 for tok in span:
-                    tok._.CONCEPT = concept_id
-                    tok._.IDEOLOGY = self.get_ideology(span)
-                    tok._.ATTRIBUTE = self.get_attribute(span)
+                    tok._.CONCEPT = span._.CONCEPT
+                    tok._.IDEOLOGY = span._.IDEOLOGY
+                    tok._.ATTRIBUTE = span._.ATTRIBUTE
 
                 # try:
                 if len(span) > 1:
@@ -251,7 +238,7 @@ class ConceptMatcher(object):
         """
         
         for concept, terms in ConceptMatcher.concept_lookup.items():
-            if token.lemma_.lower() in [pattern.lower() for pattern in terms]:
+            if token in [pattern.lower() for pattern in terms]:
                 return concept
         return ''
 
@@ -265,7 +252,7 @@ class ConceptMatcher(object):
         """
 
         for ideology, concepts in ConceptMatcher.ideology_lookup.items():
-            if token._.CONCEPT.lower() in [pattern.lower() for pattern in concepts]:
+            if token in [pattern.lower() for pattern in concepts]:
                 return ideology
         return ''
 
@@ -278,7 +265,7 @@ class ConceptMatcher(object):
         """
 
         for attribute, concepts in ConceptMatcher.attribute_lookup.items():
-            if token._.CONCEPT.lower() in [pattern.lower() for pattern in concepts]:
+            if token in [pattern.lower() for pattern in concepts]:
                 return attribute
         return ''
 

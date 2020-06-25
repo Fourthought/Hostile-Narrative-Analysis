@@ -66,15 +66,15 @@ def sent_frame(doclike, compact = True):
     sent = doclike.doc
     columns = [t.i for t in sent]
     blank = ["" for t in sent]
-    index = ["text", "ent_type", "concept", "attribute", "ideology"]
+    index = ["text", "lemma", "ent_type", "concept", "attribute", "ideology"]
     df = []
     
     df.append([t for t in sent])
+    df.append([t.lemma_ for t in sent])
     df.append([t.ent_type_ for t in sent])
     
     if compact == False:
-        index = ["text", "ent_type", "lemma", "pos", "tag", "dep", "concept", "attribute", "ideology"]
-        df.append([t.lemma_ for t in sent])
+        index = ["text", "lemma", "ent_type", "pos", "tag", "dep", "concept", "attribute", "ideology"]
         df.append([t.pos_ for t in sent])
         df.append([t.tag_ for t in sent])
         df.append([t.dep_ for t in sent])
