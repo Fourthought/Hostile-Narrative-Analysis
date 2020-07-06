@@ -143,7 +143,14 @@ class EntityMatcher(object):
 
 class ConceptMatcher(object):
     
-    """This class is a for a pipelines component for detecting concepts in a text."""
+    """
+    This class is a for a pipelines component for detecting concepts in a text.
+    
+    The group schema is used to mark up tokens with the following custom attributes:
+    - token._.CONCEPT
+    - token._.ATTRIBUTE
+    - token._.IDEOLOGY
+    """
 
     name = "Concept Matcher"  # component name, will show up in the pipeline
 
@@ -151,48 +158,39 @@ class ConceptMatcher(object):
 
     ideologies = None
     group_schema = None
-    concept_lookup = None
-    attribute_lookup = None
-    ideology_lookup = None
     
-    def __init__(self, nlp):
+    def __init__(self, nlp = None):
         
-        """Initialise the pipeline component. The shared nlp instance is used to initialise the matcher
+        """
+        Initialise the pipeline component. The shared nlp instance is used to initialise the matcher
         with the shared vocab, get the label ID and generate Doc objects as phrase match patterns.
         """
-
-        self.nlp = nlp
-        
+                
         #####
         # initiate group schema attributes to ConceptMatcher()
         #####
 
         # load group schema from disc
-        with open(os.path.join(CND.dataset_dir, ConceptMatcher.group_markup), 'r') as fp:
-            ConceptMatcher.group_schema = json.load(fp)
-        
-        # create a json object structure for group ideologies
-        with open(os.path.join(CND.dataset_dir, ConceptMatcher.group_markup), 'r') as fp:
-            ConceptMatcher.ideologies = {key : 0 for key in json.load(fp).keys()}
+        with open(os.path.join(CND.dataset_dir, self.__class__.group_markup), 'r') as fp:
+            self.__class__.group_schema = json.load(fp)
 
-        # initiate lookup tables
-        ConceptMatcher.concept_lookup = mk.get_concept_lookup(ConceptMatcher.group_schema)
-        ConceptMatcher.attribute_lookup = mk.get_attribute_lookup(ConceptMatcher.group_schema)
-        ConceptMatcher.ideology_lookup = mk.get_ideology_lookup(ConceptMatcher.group_schema)
-
-        # Set up the Matcher using concepts as the rule name and terms in the pattern 
-        self.matcher = Matcher(self.nlp.vocab)
-        for concept, terms in ConceptMatcher.concept_lookup.items():
-                self.matcher.add(concept, None, [{"LEMMA" : {"IN" : terms}}])
-        
-        Span.set_extension("CONCEPT", default = '', force = True)
         Token.set_extension("CONCEPT", default = '', force = True)
-        
-        Span.set_extension("ATTRIBUTE", default = '', force = True)
+
         Token.set_extension("ATTRIBUTE", default = '', force = True)
+
+        Token.set_extension("IDEOLOGY", default = '', force = True)
+
+        # create a json object structure for group ideologies
+        with open(os.path.join(CND.dataset_dir, self.__class__.group_markup), 'r') as fp:
+            self.__class__.ideologies = {key : 0 for key in json.load(fp).keys()}
         
-        Span.set_extension("IDEOLOGY", default = '', force = True)
-        Token.set_extension("IDEOLOGY", default = '', force = True)        
+        if nlp:
+            self.nlp = nlp
+
+            # Set up the Matcher using concepts as the rule name and terms in the pattern 
+            self.matcher = Matcher(self.nlp.vocab)
+            for concept, terms in mk.get_concept_lookup(self.__class__.group_schema):
+                self.matcher.add(concept, None, [{"LEMMA" : {"IN" : terms}}])     
 
     def __call__(self, doc):
         
@@ -208,26 +206,17 @@ class ConceptMatcher(object):
             matches = self.matcher(doc)
             for match_id, start, end in matches:
                 span = Span(doc, start, end)
-                concept_id = self.nlp.vocab.strings[match_id]
+                if self.nlp:
+                    concept_id = self.nlp.vocab.strings[match_id]
                 
-                span._.CONCEPT = concept_id
-                span._.IDEOLOGY = self.get_ideology(span._.CONCEPT.lower())
-                span._.ATTRIBUTE = self.get_attribute(span._.CONCEPT.lower())
-                
-                for tok in span:
-                    tok._.CONCEPT = span._.CONCEPT
-                    tok._.IDEOLOGY = span._.IDEOLOGY
-                    tok._.ATTRIBUTE = span._.ATTRIBUTE
+                    for token in span:
+                        token._.CONCEPT = concept_id
+                        token._.ATTRIBUTE = self.get_attribute(token)
+                        token._.IDEOLOGY = self.get_ideology(token)
 
-                # try:
-                if len(span) > 1:
-                    retokenizer.merge(span)
-
-                doc._.concepts = spacy.util.filter_spans(list(doc._.concepts) + [span])
-
-                # except ValueError:
-                #     pass
-                #doc.ents = list(doc.ents) + [span]
+                    # try:
+                    if len(span) > 1:
+                        retokenizer.merge(span)
 
         return doc
 
@@ -235,38 +224,49 @@ class ConceptMatcher(object):
     
         """
         getter function returning the concept related to token text
+        input: string or Token
+        output: related concept
         """
         
-        for concept, terms in ConceptMatcher.concept_lookup.items():
-            if token in [pattern.lower() for pattern in terms]:
+        if isinstance(token, Token):
+            token = token.lemma_
+
+        for concept, terms in mk.get_concept_lookup(self.__class__.group_schema):
+            if token.lower() in [term.lower() for term in terms]:
                 return concept
-        return ''
-
-    def get_ideology(self, token):
-
-        """
-        getter function returning the ideology related to the token concpet
-        input: token._.CONCEPT
-        output: related ideology
         
-        """
-
-        for ideology, concepts in ConceptMatcher.ideology_lookup.items():
-            if token in [pattern.lower() for pattern in concepts]:
-                return ideology
         return ''
 
     def get_attribute(self, token):
 
         """
         getter function returning group attribute related to the token concept
-        input: token._.concept
+        input: string Token, or Span
         output attribute
         """
 
-        for attribute, concepts in ConceptMatcher.attribute_lookup.items():
-            if token in [pattern.lower() for pattern in concepts]:
+        if isinstance(token, (Token, Span)):
+            token = token._.CONCEPT
+
+        for attribute, concepts in mk.get_attribute_lookup(self.__class__.group_schema):
+            if token.lower() in [concept.lower() for concept in concepts]:
                 return attribute
+        return ''
+
+    def get_ideology(self, token):
+
+        """
+        getter function returning the ideology related to the token concpet
+        input: string Token, or Span
+        output: related ideology
+        """
+        
+        if isinstance(token, (Token, Span)):
+            token = token._.CONCEPT
+
+        for ideology, concepts in mk.get_ideology_lookup(self.__class__.group_schema):
+            if token.lower() in [concept.lower() for concept in concepts]:
+                return ideology
         return ''
 
 def get_doc_ideologies(doc):
@@ -277,7 +277,8 @@ def get_doc_ideologies(doc):
     """
     
     ## create a list for counting the number of ideologies featuring as custom attributes of each named concept
-    ideology_list = [concept._.IDEOLOGY for concept in doc._.concepts if concept._.IDEOLOGY]
+    ideology_list = [concept._.IDEOLOGY for concept in doc._.custom_chunks if concept._.IDEOLOGY]
+    doc._.custom_chunks
     
     ## get the data structure of ideologies as a json object
     doc_ideologies = ConceptMatcher.ideologies.copy()
@@ -287,7 +288,6 @@ def get_doc_ideologies(doc):
         doc_ideologies[k] = v / len(ideology_list)
         
     return doc_ideologies
-
 
 
 class Group_ID(object):

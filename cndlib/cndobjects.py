@@ -31,7 +31,8 @@ class Orator(MutableSequence):
     Orator["orator.ref"][1..n]
     """
 
-    attrs = ["ref", "datestamp", "title", "word count", "file size"]
+    #attrs = ["ref", "datestamp", "title", "word count", "file size"]
+    attrs = ["ref", "datestamp", "title", "word count"]
 
     def __init__(self, ref = '', name = '', filepath = ''):
 
@@ -42,8 +43,6 @@ class Orator(MutableSequence):
         self.name = name
 
         self.filepath = filepath
-
-        self.filetype_text = ".txt"
 
         self.texts = list()
 
@@ -78,7 +77,21 @@ class Orator(MutableSequence):
         for text in self.__iter__():
             df.append([str(getattr(text, attr)) for attr in Orator.attrs[:3]])
             df[-1].append(len(text)) # get word count
-            df[-1].append(1000) # get text() size
+            # df[-1].append(cndutils.get_object_size(text)) # get text() size
+
+        return df
+
+    @property
+    def framework(self):
+
+        """
+        create a summary framework for summarising document properties
+        """
+
+        df = []
+        for text in self.__iter__():
+            df.append([str(getattr(text, attr)) for attr in Orator.attrs[:2]])
+            df[-1].append(len(text)) # get word count
             # df[-1].append(cndutils.get_object_size(text)) # get text() size
 
         return df
@@ -153,14 +166,17 @@ class Orator(MutableSequence):
 
         for _, _, filenames in os.walk(self.filepath): 
             # iterate through the files
-            for file in filenames: 
+            
+            if len(filenames) > 0: 
+                for file in filenames: 
 
-                if os.path.splitext(file)[1] == self.filetype_text and (file[:8]).isnumeric(): #check whether file meets speech filename format requirement
-                    self.append(Text(ref = self.ref, 
-                                            title = file[9:-4], 
-                                            datestamp = date(int(file[0:4]), int(file[4:6]), int(file[6:8])), 
-                                            filename = os.path.join(self.filepath, file))
-                                            )
+                    if os.path.splitext(file)[1] == Text.filetype_text and (file[:8]).isnumeric(): #check whether file meets speech filename format requirement
+                        self.append(Text(ref = self.ref, 
+                                                orator = self.name,
+                                                title = file[9:-4], 
+                                                datestamp = date(int(file[0:4]), int(file[4:6]), int(file[6:8])), 
+                                                filename = os.path.join(self.filepath, file))
+                                                )
 
     def summarise(self):
 
@@ -175,15 +191,19 @@ class Orator(MutableSequence):
 ###################################################################################
 ########## Text
 ###################################################################################
+
 class Text:
     
     """
     representation of the Text object
     """
-    
-    def __init__(self, ref = '', title = '', datestamp = '', filepath = '', filename = ''):
+    filetype_text = ".txt"
+
+    def __init__(self, ref = '', orator = '', title = '', datestamp = '', filepath = '', filename = ''):
         
         self.ref = ref
+
+        self.orator = orator
         
         self.title = title
         
@@ -207,9 +227,7 @@ class Text:
     def __repr__(self):
 
         """
-        load representation of text from disc to save from holding text in memory.
-
-        output: str of filetext
+        output: str of filetext from spaCy doc object
         """
 
         return (str(self.doc))
@@ -245,7 +263,8 @@ class Dataset(MutableMapping):
 
     CND = None
 
-    attrs = ["ref", "name", "text count", "word count", "file size"]
+    # attrs = ["ref", "name", "text count", "word count", "file size"]
+    attrs = ["ref", "name", "text count", "word count"]
     
     def __init__(self, nlp = None, dir = None):
 
@@ -264,6 +283,17 @@ class Dataset(MutableMapping):
         self.initialise()
 
     @property
+    def texts(self):
+
+        """
+        create an iterable for all the texts in the dataset
+        """
+
+        matrix = [[text for text in value.texts] for value in self.orators_dict.values()]
+        
+        return iter([val for sublist in matrix for val in sublist])
+
+    @property
     def summary(self):
 
         """ 
@@ -275,7 +305,6 @@ class Dataset(MutableMapping):
             df.append([str(getattr(orator, attr)) for attr in Dataset.attrs[:2]]) # get ref and name attrs
             df[-1].append(len(orator)) # get text count
             df[-1].append(len(str(orator))) # get word count
-            df[-1].append(1000)
             #df[-1].append(cndutils.get_object_size(orator)) # get file size
 
         return df
@@ -336,13 +365,17 @@ class Dataset(MutableMapping):
         for dirpath, dirnames, _ in os.walk(self.dir): 
 
             # iterate through the folders in the speeches directory, which relates to each orator
-            for orator_dir in dirnames: 
-                # iniate orator object and add to orators dict()
-                ref = orator_dir.split()[-1].lower()
-                self.__setitem__(ref,  Orator(name  = orator_dir, 
-                                            ref = ref,
-                                            filepath = os.path.join(dirpath, orator_dir)
-                                                   ))
+            for orator_dir in dirnames:
+
+                # if the directory contains relevant files then instantiate the object
+                if [filename for filename in os.listdir(os.path.join(dirpath, orator_dir)) if os.path.splitext(filename)[1] == ".txt" and (filename[:8]).isnumeric()]:
+
+                    # iniate orator object and add to orators dict()
+                    ref = orator_dir.split()[-1].lower()
+                    self.__setitem__(ref,  Orator(name  = orator_dir, 
+                                                ref = ref,
+                                                filepath = os.path.join(dirpath, orator_dir)
+                                                    ))
                                                    
     def summarise(self):
 
