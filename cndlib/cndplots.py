@@ -16,7 +16,7 @@ def smoothing(sentiment_list, window_size):
     
     return moving_averages_list[window_size - 1:]
 
-def get_doc_scores(dataset):
+def get_doc_metadata(dataset):
     
     for orator in dataset.values():
         for document in orator:
@@ -26,9 +26,9 @@ def get_doc_scores(dataset):
             line["title"] = document["title"]
             line["word count"] = document["word count"]
             line["sentence count"] = len(document["sentences"])
-            line["textblob"] = document["sentiment_scores"]["textblob"]
-            line["watson"] = document["sentiment_scores"]["watson"]
-            line["google"] = document["sentiment_scores"]["google"]
+            # line["textblob"] = document["sentiment_scores"]["textblob"]
+            # line["watson"] = document["sentiment_scores"]["watson"]
+            # line["google"] = document["sentiment_scores"]["google"]
             
             yield line
 
