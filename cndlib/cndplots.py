@@ -7,7 +7,6 @@ from matplotlib.offsetbox import AnchoredText
 
 # define smooting algorithm
 def smoothing(sentiment_list, window_size):
-    window_size = window_size
     numbers_series = pd.Series(sentiment_list)
     windows = numbers_series.rolling(window_size)
     moving_averages = windows.mean()
@@ -15,25 +14,6 @@ def smoothing(sentiment_list, window_size):
     moving_averages_list = moving_averages.tolist()
     
     return moving_averages_list[window_size - 1:]
-
-def get_doc_metadata(dataset):
-    
-    for orator in dataset.values():
-        for document in orator:
-            line = dict()
-            line["ref"] = document["ref"]
-            line["datestamp"] = document["datestamp"]
-            line["title"] = document["title"]
-            line["word count"] = document["word count"]
-            line["sentence count"] = len(document["sentences"])
-            # line["textblob"] = document["sentiment_scores"]["textblob"]
-            # line["watson"] = document["sentiment_scores"]["watson"]
-            # line["google"] = document["sentiment_scores"]["google"]
-            
-            yield line
-
-# df = pd.DataFrame(get_doc_scores(sentiment_analysis))
-# display(df.style.background_gradient(cmap="Blues", subset = df.columns[-3:]))
 
 # create list of x-axis references based on smoothed y-axis data
 def x_axis_smooth(sentiment_list):
@@ -63,7 +43,7 @@ def sentiment_plot(plot_list, dataset, smooth = True, \
         orator = plot_list[n][0]
         doc_index = plot_list[n][1]
         # api reference
-        line_legend = list(dataset[orator][doc_index]["sentences"][0]["scores"])
+        line_legend = dataset.apis
 
         # set the y-axis limits from -1 to +1
         plot.set_ylim([-1,1])

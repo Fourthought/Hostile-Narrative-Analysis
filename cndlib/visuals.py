@@ -38,6 +38,9 @@ def display_df(df, columns):
     # merge ref column and switch with index
     if df.columns[0].lower() == "ref":
         df = df.set_index(df.columns[0], append=True).swaplevel(0,1)
+    
+    # show full contents of each cell
+    pd.set_option('max_colwidth', 1000)
 
     return df.fillna('')
 
@@ -48,6 +51,9 @@ def heatmap(table):
     """
 
     cmp = "Reds"
+
+    # show full contents of each cell
+    pd.set_option('max_colwidth', 1000)
 
     return pd.DataFrame.from_dict(table) \
                                         .fillna("0") \
