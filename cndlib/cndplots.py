@@ -59,17 +59,21 @@ def sentiment_plot(plot_list, dataset, smooth = True, \
         plot.add_artist(AnchoredText(f'Document Sentiment Scores {doc_scores}', loc=8, prop={'size': MEDIUM_SIZE}))
 
         # iterate through lines reference and plot the results
+        sentences = dataset[orator][doc_index]["sentences"]
         for line in line_legend:
-            y_axis = [score["scores"][line] for score in dataset[orator][doc_index]["sentences"]]
+            y_axis = [score["scores"][line] for score in sentences]
             if smooth:
                 y_axis = smoothing(y_axis, plot_list[n][2])
-                plot.plot(x_axis_smooth(y_axis), y_axis, label = line)
+                plot.plot(x_axis_smooth(y_axis), y_axis, label = f"{line} ({plot_list[n][2]}) ({len(sentences)})")
             else:
-                x_axis = [i for i in range(len(dataset[orator][doc_index]["sentences"]))]
-                plot.plot(x_axis, y_axis, label = line)
+                x_axis = [i for i in range(len(sentences))]
+                plot.plot(x_axis, y_axis, label = f"{line} ({plot_list[n][2]}) ({len(sentences)})")
 
         # turn on legend and set document metadata
-        plot.legend(loc = "upper left")
+        if smooth:
+            plot.legend(loc = "upper left", title = "api (smoothing window) (#sentences)")
+        else:
+            plot.legend(loc = "upper left", title = "api (#sentences)")
         if n >= len(plot_list) - floor(len(plot_list)/2):
             plot.set_xlabel(xlabel)
         plot.set(ylabel=ylabel, title=title)

@@ -1,5 +1,6 @@
 import os
 import sys
+import pickle
 from functools import reduce
 from datetime import date, datetime
 from collections.abc import MutableMapping, MutableSequence
@@ -488,3 +489,123 @@ class Dataset(DatasetMaster):
                                                 filepath = os.path.join(dirpath, orator_dir)
                                                     ))
 
+class SentimentData(DatasetMaster):
+    
+    apis = None
+    
+    def __init__(self, apis = [], filepath = "", filename = ""):
+        super().__init__()
+        
+        self.__class__.apis = apis
+        self.filepath = filepath
+        self.filename = filename
+        
+    @property
+    def file(self):
+        return os.path.join(self.filepath, self.filename)
+        
+    @property
+    def summarise(self):
+    
+        for orator in self.values():
+            for document in orator:
+                line = dict()
+                line["ref"] = document["ref"]
+                line["datestamp"] = document["datestamp"]
+                line["title"] = document["title"]
+                line["word count"] = document["wordcount"]
+                line["sentence count"] = len(document["sentences"])
+                
+                for api in self.__class__.apis:
+                    line[api] = document["sentiment_scores"][api]
+
+                yield line
+                
+    @property
+    def df(self):
+        return pd.DataFrame(self.summarise)
+    
+    @property
+    def reference(self, orator, text):
+        return f'{orator} ({self.orators_dict[orator][text]["datestamp"]}) {self.orators_dict[orator][text]["title"]}'  
+    
+    @property
+    def minmax(self):
+        
+        minmax = dict()
+
+        for ref, orator in self.orators_dict.items():
+
+            documents = list()
+
+            for text in orator:
+
+                document = dict()
+
+                # list of sentences with a score of +1
+                # list of sentence indicies with a score of -1
+                document["most_pos_sents"] = dict()
+                document["most_pos_sents"]["explain"] = "List of sentences an API has scored at +1"
+                document["most_pos_sents"]["sentences"] = list()
+                document["most_neg_sents"] = dict()
+                document["most_neg_sents"]["explain"] = "List of sentences an API has scored at -1"
+                document["most_neg_sents"]["sentences"] = list()
+
+                # sentence indicies with highest score other than +1
+                # sentence indicies with lowest score other than -1
+                document["pos_sents"] = dict()
+                document["pos_sents"]["explain"] = "Most positive sentence less than +1 for each API"
+                document["pos_sents"]["sentences"] = dict()
+                document["neg_sents"] = dict()
+                document["neg_sents"]["explain"] = "Most negative sentence greater than -1 for each API"
+                document["neg_sents"]["sentences"] = dict()
+                
+                # reference scores for determining max and min
+                maximum = {api : 0 for api in self.__class__.apis}
+                minimum = {api : 0 for api in self.__class__.apis}
+
+                for sent in text["sentences"]:
+
+                    # get the sentence text and scores
+                    sent_scores = dict()
+                    sent_scores["text"] = sent["text"]
+                    sent_scores.update(sent["scores"])
+                    sent_scores.update(sent["emotion"])
+
+                    # iterate through each api score for the sentence
+                    for api in self.__class__.apis:
+
+                        # get scores equal to +1 or -1
+                        if sent["scores"][api] == 1:
+                            document["most_pos_sents"]["sentences"].append(sent_scores)
+
+                        if sent["scores"][api] == -1:
+                            document["most_neg_sents"]["sentences"].append(sent_scores)
+
+                        # get min and max scores less than +1 or -1
+                        if sent["scores"][api] < 1 and sent["scores"][api] > maximum[api]:
+                            maximum[api] = sent["scores"][api]
+                            document["pos_sents"]["sentences"][api] = sent_scores
+
+                        if sent["scores"][api] > -1 and sent["scores"][api] < minimum[api]:
+                            minimum[api] = sent["scores"][api]
+                            document["neg_sents"]["sentences"][api] = sent_scores
+
+                documents.append(document)
+
+            minmax[ref] = documents
+            
+        return minmax
+
+    def __len__(self):
+        return sum(self.df["sentence count"])
+    
+    def toDisk(self):
+        print("writing:", self.filename, "to:")
+        print(self.filepath)
+        pickle.dump(self.orators_dict, open(self.file, 'wb'))
+            
+    def fromDisk(self):
+        print("loading:", self.filename, "from:")
+        print(self.filepath)
+        self.orators_dict = pickle.load(open(self.file, 'rb'))
