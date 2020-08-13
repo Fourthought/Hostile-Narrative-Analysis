@@ -14,13 +14,16 @@ import numpy as np
 
 # spacy modules
 import spacy
+from spacy.tokens import Doc, Span, Token
 from spacy.matcher import PhraseMatcher
 from spacy.matcher import Matcher
 from spacy.pipeline import merge_entities
-from spacy.tokens import Doc, Span, Token
 
 #custom modules
 import schemautils as mk
+import customchunks
+from customchunks import merge_custom_chunks
+from hpspacy import hearst_patterns
 
 class CND(object):
 
@@ -29,16 +32,18 @@ class CND(object):
     dataset_dir = os.path.join(ROOT, 'dataset')
     entity_corrections = "named_entity_corrections.json"
 
-    def __init__(self, model = None):
+    def __init__(self, model = None, merge = False):
+
+        
 
         ##########
         #load spacy model
         ##########
-        SPACY_MODEL_NAMES = {"small" : "en_core_web_sm", "medium" : "en_core_web_md", "large" : "en_core_web_md"}
+        SPACY_MODEL_NAMES = {"small" : "en_core_web_sm", "medium" : "en_core_web_md", "large" : "en_core_web_lg"}
         
-        if model is not None and model in list(SPACY_MODEL_NAMES.keys()):
+        if model is not None:
             if model == "small":
-                print(f"{SPACY_MODEL_NAMES} returns some imcompatible results")
+                print(f"{SPACY_MODEL_NAMES[model]} returns some incompatible results")
             self.nlp = spacy.load(SPACY_MODEL_NAMES[model])
         else:
             self.nlp = spacy.load(SPACY_MODEL_NAMES["medium"]) # set default to medium if no model size is passed
@@ -60,6 +65,12 @@ class CND(object):
         # add concept matcher component to pipeline
         self.nlp.add_pipe(ConceptMatcher(self.nlp), after = "merge_entities") # add concepts
 
+        # # add merge custom chunks
+        # self.nlp.add_pipe(merge_custom_chunks, after = "Concept Matcher")
+
+        # # add hearst pattern matcher
+        # self.nlp.add_pipe(hearst_patterns(self.nlp, extended = True), last = True)
+
         #self.nlp.add_pipe(Group_ID(self.nlp), last = True) # add group id matcher
 
         # # add merge named concepts to pipeline
@@ -68,9 +79,10 @@ class CND(object):
         #####
         # Doc extensions
         #####
-        #Doc.set_extension("custom_chunks", getter=custom_chunks, force = True)
         Doc.set_extension("concepts", default = [], force = True)
         Doc.set_extension("ideologies", getter=get_doc_ideologies, force=True)
+        Doc.set_extension("custom_chunk_iterator", getter = customchunks.custom_chunk_iterator, force = True)
+        Doc.set_extension("custom_chunks", getter = customchunks.custom_chunks, force = True)
         
     def __call__(self, text):
 
@@ -174,11 +186,30 @@ class ConceptMatcher(object):
         with open(os.path.join(CND.dataset_dir, self.__class__.group_markup), 'r') as fp:
             self.__class__.group_schema = json.load(fp)
 
-        Token.set_extension("CONCEPT", default = '', force = True)
+        Token.set_extension("CONCEPT", default = "", force = True)
+        Token.set_extension("ATTRIBUTE", getter = self.get_attribute, force = True)
+        Token.set_extension("IDEOLOGY", getter = self.get_ideology, force = True)
 
-        Token.set_extension("ATTRIBUTE", default = '', force = True)
+        Token.set_extension("span_type", default = "", force = True)
+        Token.set_extension("modifier", default = "", force = True)
+        Token.set_extension("set_attrs", method = self.set_attrs, force = True)
+        
+        Token.set_extension("is_hypernym", default = False, force = True)
+        Token.set_extension("has_hyponyms", default = [], force = True)
+        Token.set_extension("is_hyponym", default = False, force = True)
+        Token.set_extension("has_hypernym", default = "", force = True)
 
-        Token.set_extension("IDEOLOGY", default = '', force = True)
+        Span.set_extension("CONCEPT", default = "", force = True)
+        Span.set_extension("ATTRIBUTE", getter = self.get_attribute, force = True)
+        Span.set_extension("IDEOLOGY", getter = self.get_ideology, force = True)
+
+        Span.set_extension("span_type", getter = self.get_span_type, force = True)
+        Span.set_extension("span_CONCEPT", getter = self.get_span_concept, force = True)
+
+        Span.set_extension("modifier", getter = self.get_span_modifier, force = True)
+
+        Span.set_extension("modifier", getter = self.get_span_modifier, force = True)
+        Span.set_extension("set_attrs", method = self.set_attrs, force = True)
 
         # create a json object structure for group ideologies
         with open(os.path.join(CND.dataset_dir, self.__class__.group_markup), 'r') as fp:
@@ -190,7 +221,10 @@ class ConceptMatcher(object):
             # Set up the Matcher using concepts as the rule name and terms in the pattern 
             self.matcher = Matcher(self.nlp.vocab)
             for concept, terms in mk.get_concept_lookup(self.__class__.group_schema):
-                self.matcher.add(concept, None, [{"LEMMA" : {"IN" : terms}}])     
+                if concept == "SELF":
+                    self.matcher.add(concept, None, [{"LOWER" : {"IN" : terms}}])
+                else:
+                    self.matcher.add(concept, None, [{"LEMMA" : {"IN" : terms}}])     
 
     def __call__(self, doc):
         
@@ -206,17 +240,15 @@ class ConceptMatcher(object):
             matches = self.matcher(doc)
             for match_id, start, end in matches:
                 span = Span(doc, start, end)
-                if self.nlp:
-                    concept_id = self.nlp.vocab.strings[match_id]
-                
-                    for token in span:
-                        token._.CONCEPT = concept_id
-                        token._.ATTRIBUTE = self.get_attribute(token)
-                        token._.IDEOLOGY = self.get_ideology(token)
 
-                    # try:
-                    if len(span) > 1:
-                        retokenizer.merge(span)
+                concept_id = self.nlp.vocab.strings[match_id]
+            
+                for token in span:
+                    token._.CONCEPT = concept_id
+
+                # try:
+                if len(span) > 1:
+                    retokenizer.merge(span)
 
         return doc
 
@@ -231,10 +263,12 @@ class ConceptMatcher(object):
         if isinstance(token, Token):
             token = token.lemma_
 
+        if isinstance(token, Span):
+            token = token.root.lemma_
+
         for concept, terms in mk.get_concept_lookup(self.__class__.group_schema):
             if token.lower() in [term.lower() for term in terms]:
                 return concept
-        
         return ''
 
     def get_attribute(self, token):
@@ -245,8 +279,16 @@ class ConceptMatcher(object):
         output attribute
         """
 
-        if isinstance(token, (Token, Span)):
+        if isinstance(token, Token):
             token = token._.CONCEPT
+
+        if isinstance(token, Span):
+            if token._.CONCEPT:
+                token = token._.CONCEPT
+            elif token._.modifier._.CONCEPT: 
+                token = token._.modifier._.CONCEPT
+            else:
+                token = token.root._.CONCEPT
 
         for attribute, concepts in mk.get_attribute_lookup(self.__class__.group_schema):
             if token.lower() in [concept.lower() for concept in concepts]:
@@ -261,13 +303,105 @@ class ConceptMatcher(object):
         output: related ideology
         """
         
-        if isinstance(token, (Token, Span)):
+        if isinstance(token, Token):
             token = token._.CONCEPT
+
+        if isinstance(token, Span):
+            if token._.CONCEPT:
+                token = token._.CONCEPT
+            elif token._.modifier._.CONCEPT: 
+                token = token._.modifier._.CONCEPT
+            else:
+                token = token.root._.CONCEPT
 
         for ideology, concepts in mk.get_ideology_lookup(self.__class__.group_schema):
             if token.lower() in [concept.lower() for concept in concepts]:
                 return ideology
         return ''
+
+    @staticmethod
+    def is_modifier(token):
+
+        """
+        function to determine whether a token modifies a span
+        """
+
+        tag_modifiers = ["JJ", "JJR", "JJS", "NN", "NNS", "NNP", "NNPS"]
+        dep_modifiers = ["amod", "poss", "pobj", "npadvmod", "appos", "compound"]
+
+        if token.tag_ in tag_modifiers and token.dep_ in dep_modifiers:
+            return True
+        return False
+
+    def get_span_modifier(self, span):
+
+        """
+        Getter function to for any modifying tokens of the root.
+        """       
+
+        word = span.root
+
+        # when the token is a conjunct head, need to isolate only terms to its left
+        # if the word has conjuncts but does not have a `conj` dependency it is the head of the main conjunction.
+        if word.conjuncts and word.dep_ != "conj":
+            for token in word.lefts:
+    #             print(f"from ({word}) testing ({token}) from root.lefts ({list(word.lefts)})")
+                if self.is_modifier(token) and token.i != word.i:
+                    return token
+        else:
+            # when the token is not a conjunct head, can iterate over terms to the left and right
+            for token in span:
+    #             print(f"from ({word}) testing ({token}) from root.subtree ({list(word.subtree)})")
+                if self.is_modifier(token) and token.i != word.i:
+                    return token
+        return word
+        
+    @staticmethod
+    def get_span_concept(span):
+    
+        """
+        get the concept which defines the span
+        if the span has a modifier then the modifier concept is returned
+        else the root concept is returned
+        """
+        
+        if span._.modifier:
+            return span._.modifier._.CONCEPT
+            
+        return span.root._.CONCEPT
+    
+    def get_span_type(self, span):
+        
+        """
+        getter function to define the span entity type for any named entities modifying the root token
+        
+        iterates through left facing tokens to the root to identify any modifier terms
+        returns: ent_type_ of any modifier named entities
+        else returns the span root ent_type_
+        """
+        
+        #iterate through the span and return any named concepts other than those related to the root.
+
+        for token in span:
+            if self.is_modifier(token) and token.ent_type_:
+                return token.ent_type_
+            
+        return span.root.ent_type_
+
+    def set_attrs(self, span, *args):
+        
+        """
+        span extension method to set custom attributes
+        """
+        
+        if args:
+            span._.CONCEPT = self.get_concept(args[0]) 
+        else:
+            span._.CONCEPT = span._.span_concept
+            
+        if span._.CONCEPT:
+            span._.ATTRIBUTE = self.get_attribute(span._.CONCEPT)
+            span._.IDEOLOGY =  self.get_ideology(span._.CONCEPT)
 
 def get_doc_ideologies(doc):
     

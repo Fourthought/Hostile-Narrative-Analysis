@@ -71,7 +71,10 @@ def sent_frame(doclike, extend = False):
         ("text", [t.lower_ for t in sent]),
         ("lemma", [t.lemma_ for t in sent]),
         ("head", [t.head for t in sent]),
-        ("ent type", [t.ent_type_ for t in sent])
+        ("ent type", [t.ent_type_ for t in sent]),
+        ("concept", [t._.CONCEPT for t in sent]), 
+        ("attribute", [t._.ATTRIBUTE for t in sent]), 
+        ("ideology", [t._.IDEOLOGY for t in sent])
     ])
     
     if extend == True:
@@ -79,19 +82,12 @@ def sent_frame(doclike, extend = False):
             ("pos", [t.pos_ for t in sent]),
             ("tag", [t.tag_ for t in sent]),
             ("dep", [t.dep_ for t in sent]),
-            ("ancestors", [list(t.ancestors) for t in sent])
         ]))
-        
-    df.update(OrderedDict([
-        ("concept", [t._.CONCEPT for t in sent]), 
-        ("attribute", [t._.ATTRIBUTE for t in sent]), 
-        ("ideology", [t._.IDEOLOGY for t in sent]), 
-        ("modifier", [t._.modifier if t._.modifier else "" for t in sent]),
-    ]))
+ 
+        # ("modifier", [t._.modifier if t._.modifier else "" for t in sent]),
 
+    pd.set_option('display.max_colwidth', None)
     pd.set_option('display.max_columns', None)
-    # columns = [t.i for t in sent]
-    # index = list(df.keys())
     
     return pd.DataFrame.from_dict(df, orient = "index")
 
@@ -105,13 +101,21 @@ def token_deps(token):
     if not isinstance(token, Token):
         return
 
+    try:
+        nbor = token.nbor()
+    except:
+        nbor = None
+
     df = OrderedDict([
     ("token", token.text),
+    ("i", token.i),
+    ("is_stop", token.is_stop),
     ("pos", token.pos_),
+    ("ent_type_", token.ent_type_),
     ("tag", token.tag_),
     ("dep", token.dep_),
     ("head", token.head),
-    ("nbor", token.nbor()),
+    ("nbor", nbor),    
     ("ancestors", list(token.ancestors)),
     ("conjuncts", list(token.conjuncts)),
     ("children", list(token.children)),
@@ -124,24 +128,37 @@ def token_deps(token):
     ("right span", token.doc[token.i : token.right_edge.i + 1]),
     ])
     
+    pd.set_option('display.max_colwidth', None)
     pd.set_option('display.max_columns', None)
     
     return pd.DataFrame({key:pd.Series(value).astype('str') for key, value in df.items()}).fillna("")
 
-def chunk_custom_attrs(doc):
+def chunk_custom_attrs(chunks, json = False):
 
-    df = OrderedDict([
-        ("string", [str(chunk) for chunk in doc._.custom_chunks]),
-        ("CONCEPT", [chunk._.CONCEPT if chunk._.CONCEPT else "" for chunk in doc._.custom_chunks]),
-        ("ATTRIBUTE", [chunk._.ATTRIBUTE if chunk._.ATTRIBUTE else "" for chunk in doc._.custom_chunks]),
-        ("IDEOLOGY", [chunk._.IDEOLOGY if chunk._.IDEOLOGY else "" for chunk in doc._.custom_chunks]),
-        ("span_type", [chunk._.span_type if chunk._.span_type else "" for chunk in doc._.custom_chunks]),
-        ("modifier", [chunk._.modifier if chunk._.modifier else "" for chunk in doc._.custom_chunks]),
-        ("span modifiers", [list(chunk._.span_modifiers) if chunk._.span_modifiers else "" for chunk in doc._.custom_chunks]),
-        ])
+    df = list()
 
-    pd.set_option('display.max_columns', None)
-    return pd.DataFrame({key:pd.Series(value).astype('str') for key, value in df.items()}).fillna("").T
+    for chunk in chunks:
+        line = dict()
+        line['text'] = str(chunk.text)
+        line['root'] = str(chunk.root)
+        line['root CONCEPT'] = str(chunk.root._.CONCEPT)
+        line['modifier'] = str(chunk._.modifier)
+        line['CONCEPT'] = chunk._.CONCEPT
+        line['ATTRIBUTE'] = chunk._.ATTRIBUTE
+        line['IDEOLOGY'] = chunk._.IDEOLOGY
+        line['span_type'] = chunk._.span_type
+        line['label'] = str(chunk.label_)
+        line['start'] = chunk.start
+        line["end"] = chunk.end
+        
+        df.append(line)
+
+    if json:
+        return df
+    else:
+        pd.set_option('display.max_colwidth', None)
+        pd.set_option('display.max_columns', None)
+        return pd.DataFrame(df).fillna("")
 
 def sent_custom_chunks(doc):
     
@@ -152,6 +169,7 @@ def sent_custom_chunks(doc):
     ("IDEOLOGY", [token._.IDEOLOGY if token._.IDEOLOGY else "" for token in doc]),
     ])
     
+    pd.set_option('display.max_colwidth', None)
     pd.set_option('display.max_columns', None)
     return pd.DataFrame({key:pd.Series(value).astype('str') for key, value in df.items()}).fillna("").T
 

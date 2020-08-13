@@ -1,9 +1,4 @@
-import spacy
-from spacy.tokens import Span, Token
-
-class hearst_patterns(object):
-
-    name = "hearst pattern matcher"
+class hearst_patterns_v1(object):
     
     """ Hearst Patterns is a class object used to detects hypernym relations to hyponyms in a text
     
@@ -13,8 +8,11 @@ class hearst_patterns(object):
     
     """
     
-    def __init__(self, nlp, extended=False):
+    import spacy
+    
+    def __init__(self, nlp, extended=False, predicatematch = "basic"):
         
+       
 #     Included in each entry is the original regex pattern now adapted as a spaCy matcher pattern.
 #     Many of these patterns are in the same format, next iteration of code should include an
 #     automatic pattern generator for patterns.
@@ -30,52 +28,58 @@ class hearst_patterns(object):
       
         # make the patterns easier to read
         # as lexical understanding develops, consider adding attributes to dstinguish between hypernyms and hyponyms
-        
         self.nlp = nlp
         
-        hypernym = {"POS" : {"IN": ["NOUN", "PROPN", "PRON"]}}
-        hyponym = {"POS" : {"IN": ["NOUN", "PROPN", "PRON"]}}
+        options = ["bronze", "silver", "gold"]
+        if predicatematch not in options:
+            entry = ""
+            while entry not in ["1", "2", "3"]: 
+                entry = input(f"1. {options[0]}, 2. {options[1]}, 3. {options[2]}")
+            self.predicatematch = options[int(entry) -1]
+        else:
+            self.predicatematch = predicatematch
+        
+        hypernym = {"POS" : {"IN": ["NOUN", "PROPN"]}} 
+        hyponym = {"POS" : {"IN": ["NOUN", "PROPN"]}}
         punct = {"IS_PUNCT": True, "OP": "?"}
-        det = {"ORTH" : "*", "OP" : "*"}
-        wildcard = {}
 
         self.patterns = [
 
         {"label" : "such_as", "pattern" : [
 #                 '(NP_\\w+ (, )?such as (NP_\\w+ ?(, )?(and |or )?)+)',
 #                 'first'
-             hypernym, punct, {"LEMMA": "such"}, {"LEMMA": "as"}, det, hyponym
+             hypernym, punct, {"LEMMA": "such"}, {"LEMMA": "as"}, hyponym
         ], "posn" : "first"},
 
         {"label" : "know_as", "pattern" : [
 #                 '(NP_\\w+ (, )?know as (NP_\\w+ ?(, )?(and |or )?)+)', # added for this experiment
 #                 'first'
-             hypernym, punct, {"LEMMA": "know"}, {"LEMMA": "as"}, det, hyponym
+             hypernym, punct, {"LEMMA": "know"}, {"LEMMA": "as"}, hyponym
         ], "posn" : "first"},
 
         {"label" : "such", "pattern" : [
 #                 '(such NP_\\w+ (, )?as (NP_\\w+ ?(, )?(and |or )?)+)',
 #                 'first'
-             {"LEMMA": "such"}, hypernym, punct, {"LEMMA": "as"}, det, hyponym
+             {"LEMMA": "such"}, hypernym, punct, {"LEMMA": "as"}, hyponym
         ], "posn" : "first"},
 
         {"label" : "include", "pattern" : [
 #                 '(NP_\\w+ (, )?include (NP_\\w+ ?(, )?(and |or )?)+)',
 #                 'first'
-             hypernym, punct, wildcard, {"LEMMA" : "include"}, det, hyponym
+             hypernym, punct, {"LEMMA" : "include"}, hyponym
         ], "posn" : "first"},
 
         {"label" : "especially", "pattern" : [ ## problem - especially is merged as a modifier in to a noun phrase
 #                 '(NP_\\w+ (, )?especially (NP_\\w+ ?(, )?(and |or )?)+)',
 #                 'first'
-             hypernym, punct, {"LEMMA" : "especially"}, det, hyponym
+             hypernym, punct, {"LEMMA" : "especially"}, hyponym
         ], "posn" : "first"},
 
         {"label" : "other", "pattern" : [
 #             problem: the noun_chunk, 'others' clashes with this rule to create a zero length chunk when predicate removed
 #                 '((NP_\\w+ ?(, )?)+(and |or )?other NP_\\w+)',
 #                 'last'
-             det, hyponym, punct, {"LEMMA" : {"IN" : ["and", "or"]}}, {"LEMMA" : "other"}, hypernym
+             hyponym, punct, {"LEMMA" : {"IN" : ["and", "or"]}}, {"LEMMA" : "other"}, hypernym
 #             There were bruises, lacerations, or other injuries were not prevalent."
         ], "posn" : "last"},
 
@@ -88,83 +92,83 @@ class hearst_patterns(object):
 #                     '(NP_\\w+ (, )?which may include (NP_\\w+ '
 #                     '?(, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "which"}, {"LEMMA" : "may"}, {"LEMMA" : "include"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "which"}, {"LEMMA" : "may"}, {"LEMMA" : "include"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "which_be_similar_to", "pattern" : [
 #                     '(NP_\\w+ (, )?which be similar to (NP_\\w+ ? '
 #                     '(, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "which"}, {"LEMMA" : "be"}, {"LEMMA" : "similar"}, {"LEMMA" : "to"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "which"}, {"LEMMA" : "be"}, {"LEMMA" : "similar"}, {"LEMMA" : "to"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "example_of_this_be", "pattern" : [
 #                     '(NP_\\w+ (, )?example of this be (NP_\\w+ ? '
 #                     '(, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "example"}, {"LEMMA" : "of"}, {"LEMMA" : "this"}, {"LEMMA" : "be"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "example"}, {"LEMMA" : "of"}, {"LEMMA" : "this"}, {"LEMMA" : "be"}, hyponym
             ], "posn" : "first"},
 
             {"label" : ",type", "pattern" : [
 #                     '(NP_\\w+ (, )?type (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "type"}, punct, det, hyponym
+                hypernym, punct, {"LEMMA" : "type"}, punct, hyponym
             ], "posn" : "first"},
 
             {"label" : "mainly", "pattern" : [
 #                     '(NP_\\w+ (, )?mainly (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "mainly"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "mainly"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "mostly", "pattern" : [
 #                     '(NP_\\w+ (, )?mostly (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "mostly"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "mostly"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "notably", "pattern" : [
 #                     '(NP_\\w+ (, )?notably (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "notably"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "notably"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "particularly", "pattern" : [
 #                     '(NP_\\w+ (, )?particularly (NP_\\w+ ? '
 #                     '(, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "particularly"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "particularly"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "principally", "pattern" : [
 #                     '(NP_\\w+ (, )?principally (NP_\\w+ ? (, )?(and |or )?)+)', - fuses in a noun phrase
 #                     'first'
-                hypernym, punct, {"LEMMA" : "principally"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "principally"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "in_particular", "pattern" : [
 #                     '(NP_\\w+ (, )?in particular (NP_\\w+ ? '
 #                     '(, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "in"}, {"LEMMA" : "particular"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "in"}, {"LEMMA" : "particular"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "except", "pattern" : [
 #                     '(NP_\\w+ (, )?except (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "except"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "except"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "other_than", "pattern" : [
 #                     '(NP_\\w+ (, )?other than (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "other"}, {"LEMMA" : "than"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "other"}, {"LEMMA" : "than"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "eg", "pattern" : [
 #                     '(NP_\\w+ (, )?e.g. (, )?(NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : {"IN" : ["e.g.", "eg"]}}, det, hyponym 
+                hypernym, punct, {"LEMMA" : {"IN" : ["e.g.", "eg"]}}, hyponym 
             ], "posn" : "first"},
 
 #                 {"label" : "eg-ie", "pattern" : [ 
@@ -177,27 +181,27 @@ class hearst_patterns(object):
             {"label" : "ie", "pattern" : [
 #                     '(NP_\\w+ (, )?i.e. (, )?(NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : {"IN" : ["i.e.", "ie"]}}, det, hyponym 
+                hypernym, punct, {"LEMMA" : {"IN" : ["i.e.", "ie"]}}, hyponym 
             ], "posn" : "first"},
 
             {"label" : "for_example", "pattern" : [
 #                     '(NP_\\w+ (, )?for example (, )?'
 #                     '(NP_\\w+ ?(, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "for"}, {"LEMMA" : "example"}, punct, det, hyponym
+                hypernym, punct, {"LEMMA" : "for"}, {"LEMMA" : "example"}, punct, hyponym
             ], "posn" : "first"},
 
             {"label" : "example_of_be", "pattern" : [
 #                     'example of (NP_\\w+ (, )?be (NP_\\w+ ? '
 #                     '(, )?(and |or )?)+)',
 #                     'first'
-                {"LEMMA" : "example"}, {"LEMMA" : "of"}, hypernym, punct, {"LEMMA" : "be"}, det, hyponym
+                {"LEMMA" : "example"}, {"LEMMA" : "of"}, hypernym, punct, {"LEMMA" : "be"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "like", "pattern" : [
 #                     '(NP_\\w+ (, )?like (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "like"}, det, hyponym,
+                hypernym, punct, {"LEMMA" : "like"}, hyponym,
             ], "posn" : "first"},
 
             # repeat of such_as pattern in primary patterns???
@@ -207,93 +211,93 @@ class hearst_patterns(object):
                 {"label" : "whether", "pattern" : [
 #                     '(NP_\\w+ (, )?whether (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "whether"}, det, hyponym
+                hypernym, punct, {"LEMMA" : "whether"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "compare_to", "pattern" : [
 #                     '(NP_\\w+ (, )?compare to (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "compare"}, {"LEMMA" : "to"}, det, hyponym 
+                hypernym, punct, {"LEMMA" : "compare"}, {"LEMMA" : "to"}, hyponym 
             ], "posn" : "first"},
 
             {"label" : "among_-PRON-", "pattern" : [
 #                     '(NP_\\w+ (, )?among -PRON- (NP_\\w+ ? '
 #                     '(, )?(and |or )?)+)',
 #                     'first'
-                hypernym, punct, {"LEMMA" : "among"}, {"LEMMA" : "-PRON-"}, det, det, hyponym
+                hypernym, punct, {"LEMMA" : "among"}, {"LEMMA" : "-PRON-"}, hyponym
             ], "posn" : "first"},
 
             {"label" : "for_instance", "pattern" : [
 #                     '(NP_\\w+ (, )? (NP_\\w+ ? (, )?(and |or )?)+ '
 #                     'for instance)',
 #                     'first'
-                hypernym, punct, det, hyponym, {"LEMMA" : "for"}, {"LEMMA" : "instance"}
+                hypernym, punct, hyponym, {"LEMMA" : "for"}, {"LEMMA" : "instance"}
             ], "posn" : "first"},
 
             {"label" : "and-or_any_other", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?any other NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"DEP": "cc"}, {"LEMMA" : "any"}, {"LEMMA" : "other"}, hypernym,
+                hyponym, punct, {"DEP": "cc"}, {"LEMMA" : "any"}, {"LEMMA" : "other"}, hypernym,
             ], "posn" : "last"},
 
             {"label" : "some_other", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?some other NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"DEP": "cc", "OP" : "?"}, {"LEMMA" : "some"}, {"LEMMA" : "other"}, hypernym,
+                hyponym, punct, {"DEP": "cc", "OP" : "?"}, {"LEMMA" : "some"}, {"LEMMA" : "other"}, hypernym,
             ], "posn" : "last"},
 
             {"label" : "be_a", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?be a NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "be"}, {"LEMMA" : "a"}, hypernym,
+                hyponym, punct, {"LEMMA" : "be"}, {"LEMMA" : "a"}, hypernym,
             ], "posn" : "last"},
 
             {"label" : "like_other", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?like other NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "like"}, {"LEMMA" : "other"}, hypernym,
+                hyponym, punct, {"LEMMA" : "like"}, {"LEMMA" : "other"}, hypernym,
             ], "posn" : "last"},
 
              {"label" : "one_of_the", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?one of the NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "one"}, {"LEMMA" : "of"}, {"LEMMA" : "the"}, hypernym,
+                hyponym, punct, {"LEMMA" : "one"}, {"LEMMA" : "of"}, {"LEMMA" : "the"}, hypernym,
             ], "posn" : "last"},
 
             {"label" : "one_of_these", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?one of these NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "one"}, {"LEMMA" : "of"}, {"LEMMA" : "these"}, hypernym,
+            hyponym, punct, {"LEMMA" : "one"}, {"LEMMA" : "of"}, {"LEMMA" : "these"}, hypernym,
             ], "posn" : "last"},
 
             {"label" : "one_of_those", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?one of those NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"DEP": "cc", "OP" : "?"}, {"LEMMA" : "one"}, {"LEMMA" : "of"}, {"LEMMA" : "those"}, hypernym,
+            hyponym, punct, {"DEP": "cc", "OP" : "?"}, {"LEMMA" : "one"}, {"LEMMA" : "of"}, {"LEMMA" : "those"}, hypernym,
             ], "posn" : "last"},
 
             {"label" : "be_example_of", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?be example of NP_\\w+)', added optional "an" to spaCy pattern for singular vs. plural
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "be"}, {"LEMMA" : "an", "OP" : "?"}, {"LEMMA" : "example"}, {"LEMMA" : "of"}, hypernym
+                hyponym, punct, {"LEMMA" : "be"}, {"LEMMA" : "an", "OP" : "?"}, {"LEMMA" : "example"}, {"LEMMA" : "of"}, hypernym
             ], "posn" : "last"},
 
             {"label" : "which_be_call", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?which be call NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "be"}, {"LEMMA" : "call"}, hypernym
+                hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "be"}, {"LEMMA" : "call"}, hypernym
             ], "posn" : "last"},
 #               
             {"label" : "which_be_name", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?which be name NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "be"}, {"LEMMA" : "name"}, hypernym
+                hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "be"}, {"LEMMA" : "name"}, hypernym
             ], "posn" : "last"},
 
             {"label" : "a_kind_of", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and|or)? a kind of NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "a"}, {"LEMMA" : "kind"}, {"LEMMA" : "of"}, hypernym
+                hyponym, punct, {"LEMMA" : "a"}, {"LEMMA" : "kind"}, {"LEMMA" : "of"}, hypernym
             ], "posn" : "last"},
 
 #                     '((NP_\\w+ ?(, )?)+(and|or)? kind of NP_\\w+)', - combined with above
@@ -302,31 +306,31 @@ class hearst_patterns(object):
             {"label" : "form_of", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and|or)? form of NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "a", "OP" : "?"}, {"LEMMA" : "form"}, {"LEMMA" : "of"}, hypernym
+                hyponym, punct, {"LEMMA" : "a", "OP" : "?"}, {"LEMMA" : "form"}, {"LEMMA" : "of"}, hypernym
             ], "posn" : "last"},
 
             {"label" : "which_look_like", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?which look like NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "look"}, {"LEMMA" : "like"}, hyponym
+                hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "look"}, {"LEMMA" : "like"}, hyponym
             ], "posn" : "last"},
 
             {"label" : "which_sound_like", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )?which sound like NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "sound"}, {"LEMMA" : "like"}, hypernym
+                hyponym, punct, {"LEMMA" : "which"}, {"LEMMA" : "sound"}, {"LEMMA" : "like"}, hypernym
             ], "posn" : "last"},
 
             {"label" : "type", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and |or )? NP_\\w+ type)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "type"}, hypernym
+                hyponym, punct, {"LEMMA" : "type"}, hypernym
             ], "posn" : "last"},
 
             {"label" : "compare_with", "pattern" : [
 #                     '(compare (NP_\\w+ ?(, )?)+(and |or )?with NP_\\w+)',
 #                     'last'
-                {"LEMMA" : "compare"}, det, hyponym, punct, {"LEMMA" : "with"}, hypernym
+                {"LEMMA" : "compare"}, hyponym, punct, {"LEMMA" : "with"}, hypernym
             ], "posn" : "last"},
 
 #             {"label" : "as", "pattern" : [
@@ -338,7 +342,7 @@ class hearst_patterns(object):
             {"label" : "sort_of", "pattern" : [
 #                     '((NP_\\w+ ?(, )?)+(and|or)? sort of NP_\\w+)',
 #                     'last'
-                det, hyponym, punct, {"LEMMA" : "sort"}, {"LEMMA" : "of"}, hypernym
+                hyponym, punct, {"LEMMA" : "sort"}, {"LEMMA" : "of"}, hypernym
             ], "posn" : "last"},
 
         ]),        
@@ -346,8 +350,18 @@ class hearst_patterns(object):
         ## initiate matcher
         from spacy.matcher import Matcher
         self.matcher = Matcher(self.nlp.vocab, validate = True)
-
-        self.pairs = [] # set up dictionary containing pairs
+        
+        # added "some" to original list
+        self.predicate_list = [
+            'able', 'available', 'brief', 'certain',
+            'different', 'due', 'enough', 'especially', 'few', 'fifth',
+            'former', 'his', 'howbeit', 'immediate', 'important', 'inc',
+            'its', 'last', 'latter', 'least', 'less', 'likely', 'little',
+            'many', 'ml', 'more', 'most', 'much', 'my', 'necessary',
+            'new', 'next', 'non', 'old', 'other', 'our', 'ours', 'own',
+            'particular', 'past', 'possible', 'present', 'proud', 'recent',
+            'same', 'several', 'significant', 'similar', 'some', 'such', 'sup', 'sure'
+        ]
 
         self.predicates = []
         self.first = []
@@ -357,15 +371,94 @@ class hearst_patterns(object):
         for pattern in self.patterns:
             self.matcher.add(pattern["label"], None, pattern["pattern"])
 
+            # gather list of predicate terms for the noun_chunk deconfliction
+            self.predicates.append(pattern["label"].split('_'))
+
             # gather list of predicates where the hypernym appears first
             if pattern["posn"] == "first":
                 self.first.append(pattern["label"])
 
             # gather list of predicates where the hypernym appears last
             if pattern["posn"] == "last":
-                self.last.append(pattern["label"]) 
+                self.last.append(pattern["label"])
+                
+    def isPredicateMatch_bronze(self, noun_chunk, predicates):
+        
+        """
+        Bronze option to remove predicate phrases from noun_chunks using a predefined list of modifiers
+
+        input: the chunk to be checked, list of predicate phrases
+        returns: the chunk with predicate phrases removed.
+
+        """
+        counter = 0
+        while noun_chunk[counter].lemma_ in predicates:
+                counter += 1
+                
+        #remove empty spans, eg the noun_chunk 'others' becomes a zero length span
+        if len(noun_chunk[counter:]) == 0:
+            counter = 0
+                
+        return noun_chunk[counter:]
     
-    def __call__(self, text):
+    def isPredicateMatch_silver(self, noun_chunk):
+        
+        """
+        Silver option to remove predicate phrases from noun_chunks using stop word list
+
+        input: the chunk to be checked, list of predicate phrases
+        returns: the chnunk with predicate phrases removed.
+
+        """
+        counter = 0
+        
+        while not noun_chunk[0].is_stop and noun_chunk[counter].is_stop:
+            counter += 1
+                
+#         #remove empty spans, eg the noun_chunk 'others' becomes a zero length span
+#         if len(chunk[counter:]) == 0:
+#             counter = 0
+        #print(noun_chunk, "becomes: ", noun_chunk[counter:])        
+        return noun_chunk[counter:]
+
+    def isPredicateMatch_gold(self, noun_chunk, predicates):
+        
+        """
+        Gold option to remove predicate phrases from noun_chunks using pattern labels.
+
+        input: the chunk to be checked, list of predicate phrases
+        returns: the chnunk with predicate phrases removed.
+
+        """
+
+        def match(empty, count, noun_chunk, predicates):
+            # empty: check whether predicates list is empty
+            # count < len(predicates[0]): checks whether the count has reached the final token of the predicate
+            # chunk[count].lemma_ == predicates[0][count]: check whether chunk token is equal to the predicate token
+
+            
+            while not empty and count < len(predicates[0]) and noun_chunk[count].lemma_ == predicates[0][count]:
+                count += 1
+                
+            #remove empty spans, eg the noun_chunk 'others' becomes a zero length span
+            if len(noun_chunk[count:]) == 0:
+                count = 0
+
+            return empty, count
+    
+        def isMatch(noun_chunk, predicates):
+
+            empty, counter = match(predicates == [], 0, noun_chunk, predicates)
+            if empty or counter == len(predicates[0]):
+                #print(chunk, "becomes: ", chunk[counter:])
+                return noun_chunk[counter:]
+            else:
+                return isMatch(noun_chunk, predicates[1:])
+
+        return isMatch(noun_chunk, predicates)
+    
+    
+    def find_hyponyms(self, doc):
         
         """
         this is the main function of the class object
@@ -377,10 +470,10 @@ class hearst_patterns(object):
         4. create list of dict object containing match results
         """
         
-        if isinstance(text, spacy.tokens.doc.Doc):
-            doc = text
-        else:
-            doc = self.nlp(text) # initiate doc 
+        # if isinstance(text, spacy.tokens.doc.Doc):
+        #     doc = text
+        # else:
+        #     doc = self.nlp(text) # initiate doc 
             
         
         ## Pre-processing
@@ -389,14 +482,29 @@ class hearst_patterns(object):
         # merged noun-chunk, consequently, they are not detected in by the matcher.
         # This pre-processing, therefore, walks through the noun_chunks of a doc object to remove those
         # predicate terms from each noun_chunk and merges the result.
+        
+        with doc.retokenize() as retokenizer:
+
+            for chunk in doc.noun_chunks:
+
+                attrs = {"tag": chunk.root.tag, "dep": chunk.root.dep}
+
+                if self.predicatematch == "bronze":
+                    retokenizer.merge(self.isPredicateMatch_bronze(chunk, self.predicate_list), attrs = attrs)
+                elif self.predicatematch == "silver":
+                    retokenizer.merge(self.isPredicateMatch_silver(chunk), attrs = attrs)
+                elif self.predicatematch == "gold":
+                    retokenizer.merge(self.isPredicateMatch_gold(chunk, self.predicates), attrs = attrs)
     
         ## Main Body
         #Find matches in doc
         matches = self.matcher(doc)
         
+        pairs = [] # set up dictionary containing pairs
+        
         # If none are found then return None
         if not matches:
-            return doc
+            return pairs
 
         for match_id, start, end in matches:
             predicate = self.nlp.vocab.strings[match_id]
@@ -412,27 +520,20 @@ class hearst_patterns(object):
                 hypernym = doc[start]
                 hyponym = doc[end - 1]
 
-            # hypernym recorded as True and list of hyponyms created 
-            hypernym._.is_hypernym = True
-            hypernym._.has_hyponyms.append(hyponym)
-           
-            # hyponym recorded as True and its hypernym is recorded
-            hyponym._.is_hyponym = True
-            hyponym._.has_hypernym = hypernym
+            # create a list of dictionary objects with the format:
+            # {
+            # "predicate" : " predicate term based from pattern name,
+            # "pairs" : [(hypernym, hyponym)] + [hyponym conjuncts (tokens linked by and | or)]
+            # "sent" : sentence in which the pairs originate
+            # }
+            
+#             pairs.append(dict({"predicate" : predicate, 
+#                                "pairs" : [(hypernym, hyponym)] + [(hypernym, token) for token in hyponym.conjuncts if token != hypernym],
+#                                "sent" : (hyponym.sent.text).strip()}))
 
-            # iterate over conjunct list attached to hyponym
+            pairs.append((hyponym, hypernym, predicate))  
             for token in hyponym.conjuncts:   
                 if token != hypernym and token != None:
-                    hypernym._.has_hyponyms.append(token)
-                    token._.is_hyponym = True
-                    token._.has_hypernym = hypernym
+                    pairs.append((token, hypernym, predicate))
 
-            hypernym_extended = doc[hypernym.left_edge.i : hypernym.i + 1]
-            hyponym_extended = doc[hyponym.left_edge.i : hyponym.i + 1]
-
-            self.pairs.append((hypernym_extended, predicate, hyponym_extended)) 
-            for token in hyponym.conjuncts:   
-                if token != hypernym and token != None:
-                    self.pairs.append((hypernym_extended, predicate, doc[token.left_edge.i : token.i + 1]))
-
-        return doc
+        return pairs
