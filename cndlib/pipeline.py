@@ -32,7 +32,7 @@ class CND(object):
     dataset_dir = os.path.join(ROOT, 'dataset')
     entity_corrections = "named_entity_corrections.json"
 
-    def __init__(self, model = None, merge = False):
+    def __init__(self, model = None, merge = False, extended = True):
 
         
 
@@ -65,11 +65,12 @@ class CND(object):
         # add concept matcher component to pipeline
         self.nlp.add_pipe(ConceptMatcher(self.nlp), after = "merge_entities") # add concepts
 
-        # # add merge custom chunks
-        # self.nlp.add_pipe(merge_custom_chunks, after = "Concept Matcher")
+        if extended:
+            # add merge custom chunks
+            self.nlp.add_pipe(merge_custom_chunks, after = "Concept Matcher")
 
-        # # add hearst pattern matcher
-        # self.nlp.add_pipe(hearst_patterns(self.nlp, extended = True), last = True)
+            # add hearst pattern matcher
+            self.nlp.add_pipe(hearst_patterns(self.nlp, extended = True), last = True)
 
         #self.nlp.add_pipe(Group_ID(self.nlp), last = True) # add group id matcher
 

@@ -147,6 +147,7 @@ def chunk_custom_attrs(chunks, json = False):
         line['ATTRIBUTE'] = chunk._.ATTRIBUTE
         line['IDEOLOGY'] = chunk._.IDEOLOGY
         line['span_type'] = chunk._.span_type
+        line["entity"] = str([ent.text for ent in chunk.ents if ent.label_ in ["GPE", "NORP", "PERSON", "ORG"]]).strip("['']")
         line['label'] = str(chunk.label_)
         line['start'] = chunk.start
         line["end"] = chunk.end

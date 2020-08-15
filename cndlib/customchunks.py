@@ -51,6 +51,7 @@ def custom_chunk_iterator(doclike):
         """
         function to check whether a word is the head of an adpositional phrase
         if there is a nested adpositional phrase, returns false
+        TODO: modify with networkx library
         """
         
         if word.n_rights > 0:
@@ -59,6 +60,8 @@ def custom_chunk_iterator(doclike):
                 pobj_i = list(doc[adp_i].children)[0].i
                 if doc[pobj_i].dep == pobj and doc[pobj_i].n_rights == 0:
                     return True
+
+                # to replace ["to", "in"] clause, add a new test for when pobj.pos_ == conj, return false
                 if doc[pobj_i].dep == pobj and doc[pobj_i].n_rights > 0:
                     if list(doc[pobj_i].rights)[0].pos != ADP:
                         return True
