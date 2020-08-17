@@ -20,8 +20,10 @@ The Hearst Pattern pipeline component works by adding the following custom attri
 Identifying whether a Token entity is ingroup or outgroup is achieved by accessing the following property
 
 `
-    if Token._.span_type and Token._.has_hypernym:
-        if Token._.has_hypernym._.ATTRIBUTE == "outgroup":
+
+     if Token._.span_type and Token._.has_hypernym:
+         if Token._.has_hypernym._.ATTRIBUTE == "outgroup":
+
 `
 
 ## Refactoring spaCy's in-built noun-chunker
@@ -62,14 +64,14 @@ Source code for custom chunker:
 A number of test for each experiment have been completed.
 
 ### Creating custom chunk pipeline component
-In-built chunker success rate: 50.0%
-Custom chunker success rate: 94.0%
-A 44.0% improvement in using the new chunker
+- In-built chunker success rate: 50.0%
+- Custom chunker success rate: 94.0%
+- A 44.0% improvement in using the new chunker
 
 ### Creating the Benchmark dataset
-Total number of named entities: 529
-Total number of detectable named entities: 97
-Total number of non-detectable named entities: 359
+- Total number of named entities: 529
+- Total number of detectable named entities: 97
+- Total number of non-detectable named entities: 359
 
 ### Comparing number of detected hypernymic relations between each method for the datasets:
 
