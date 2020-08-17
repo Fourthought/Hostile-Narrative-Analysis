@@ -31,10 +31,10 @@ Finally, noun chunks have to be annotated with the custom attributes of CONCEPT,
 With the new custom chunk extension, a merge custom chunk component has also been developed. The merge custom chunk component merges custom chunk Spans to a single Token while also capturing the custom attributes.
 
 The Hearst Pattern pipeline component works by adding the following custom attributes to a Token:
-        is_hypernym : Boolean statement for whether a Token is a hypernym
-        has_hyponyms : list of Token object for Token's hyponyms
-        is_hyponym : Boolean statement for whether a Token is a hyponym
-        has_hypernym : Token object for Token's hypernym
+- is_hypernym : Boolean statement for whether a Token is a hypernym
+- has_hyponyms : list of Token object for Token's hyponyms
+- is_hyponym : Boolean statement for whether a Token is a hyponym
+- has_hypernym : Token object for Token's hypernym
 
 Identifying whether a Token entity is ingroup or outgroup is achieved by accessing the following property
 '
@@ -60,14 +60,14 @@ A step by step series of examples that tell you how to get a development env run
 ## Test Data
 A number of test for each experiment have been completed.
 
-### Benchmark data
+### Creating the Benchmark dataset
 Total number of named entities: 529
 Total number of detectable named entities: 97
 Total number of non-detectable named entities: 359
 
-### Regex Pattern Detection
+### Experiment 1.1 - Regex Hearst Patterns
 
-### spaCy Pattern Detection
+### Experiment 1.2 - spaCy Hearst Patterns
 
 ### ingroup/outgroup detection
 
