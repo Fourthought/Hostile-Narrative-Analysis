@@ -73,21 +73,20 @@ Total number of non-detectable named entities: 359
 
 ### Comparing number of detected hypernymic relations between each method for the datasets:
 
- |regex | spaCy
-George Bush | 39 | 92
-Martin Luther King | 22 | 53
-Osama Bin Laden | 29 | 71
-
-### Experiment 1.2 - spaCy Hearst Patterns
+Orator              | regex | spaCy |
+------------------- | ----- | ----- |
+George Bush         | 39    | 92    |
+Martin Luther King  | 22    | 53    |
+Osama Bin Laden     | 29    | 71    | 
 
 ### ingroup/outgroup detection
 
-Authors
+## Authors
 @fourthought
 
-License
+## License
 This project is licensed under the MIT License - see the LICENSE.md file for details
 
-# Acknowledgments
+## Acknowledgments
 Big thank you to @mmichelsonIF for the regex source code
 Big thank you also to @DeNeutoy for the idea

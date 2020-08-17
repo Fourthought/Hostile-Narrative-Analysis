@@ -18,9 +18,8 @@ The methodology and experimentation are structured are as follows (to be updated
 | Obj 0.7       | Experiment 0.4 - Coreference Resolution                   | Hugging Face coref                |
 | ------------- | --------------------------------------------------------- | --------------------------------- |
 | Obj 1.        | Detect the ingroup and outgroup of an orator’s text       |                                   |
-|               | Experiment 1.1 - Sentiment Analysis                       | TextBlob, IBM Watson, GoogleNLU   |
-|               | Experiment 1.2 - Word Embeddings                          | Word2Vec                          |
-|               | Experiment 1.3 - Hearst Patterns                          | regex, spaCy Matcher              |
+|               | Experiment 1.1 - Regex Hearst Patterns                    | Regex                             |
+|               | Experiment 1.2 - Hearst Patterns                          | spaCy Matcher                     |
 | ------------- | --------------------------------------------------------- | --------------------------------- |
 | Obj 2.        | Detect and classify phrases as ingroup elevation terms.   |                                   |
 | ------------- | --------------------------------------------------------- | --------------------------------- |
