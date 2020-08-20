@@ -44,6 +44,7 @@ def custom_chunk_iterator(doclike):
     np_deps = [doc.vocab.strings.add(label) for label in labels]
     ADP = doc.vocab.strings.add("ADP")
     pobj = doc.vocab.strings.add("pobj")
+    conj = doc.vocab.strings.add("conj")
     cc_label = doc.vocab.strings.add("CC")
     
     def ADP_head(word):
@@ -52,19 +53,28 @@ def custom_chunk_iterator(doclike):
         function to check whether a word is the head of an adpositional phrase
         if there is a nested adpositional phrase, returns false
         TODO: modify with networkx library
+        TODO: replace ["to", "in"] clause, 
+        TODO: add a new test for when pobj.pos_ == conj, return false
         """
         
         if word.n_rights > 0:
             adp_i = list(word.rights)[0].i
             if doc[adp_i].pos == ADP and doc[adp_i].text not in ["to", "in"] and doc[adp_i].n_rights > 0:
                 pobj_i = list(doc[adp_i].children)[0].i
+
+                if doc[pobj_i]._.is_ADP_head:
+                    return False
+
                 if doc[pobj_i].dep == pobj and doc[pobj_i].n_rights == 0:
                     return True
 
-                # to replace ["to", "in"] clause, add a new test for when pobj.pos_ == conj, return false
+                if doc[pobj_i].pos_ == conj:
+                    return False
+
                 if doc[pobj_i].dep == pobj and doc[pobj_i].n_rights > 0:
                     if list(doc[pobj_i].rights)[0].pos != ADP:
                         return True
+        
         return False
         
     def get_right_edge(word):
@@ -81,6 +91,7 @@ def custom_chunk_iterator(doclike):
                 return doc[pobj_i].right_edge.i
             
             return list(doc[adp_i].children)[-1].i
+
     prev_end = -1
     
     for word in doclike:
@@ -95,6 +106,7 @@ def custom_chunk_iterator(doclike):
         elif ADP_head(word):
             
             right_edge = word.right_edge.i
+            word._.is_ADP_head = True
             
             if word.n_rights > 0:
                 right_edge = get_right_edge(word)
@@ -119,33 +131,34 @@ def custom_chunks(doc):
     this chunker uses the <.subtree> property.
     
     YIELDS (Span): Base customised chunk `Span` objects
+    DOCS: https://github.com/explosion/spaCy/blob/master/spacy/tokens/doc.pyx 
     """
-    
-    # Accumulate the result before beginning to iterate over it. This
-    # prevents the tokenisation from being changed out from under us
-    # during the iteration. The tricky thing here is that Span accepts
-    # its tokenisation changing, so it's okay once we have the Span
-    # objects. See Issue #375
 
     spans = []    
     
-    if doc._.custom_chunk_iterator is not None:
-        for start, end, label in doc._.custom_chunk_iterator:
-            
-            # remove stopword tokens from left of the span
-            for index in range(start, end):
-                if doc[index].pos_ in ["PROPN", "NOUN", "PRON", "ADJ"]:
-                    break
-                if doc[index].lower_ in cust_stopwords or doc[index].is_stop:
-                    start += 1
-                    
-            span = Span(doc, start, end, label=label)
-            if span.root._.CONCEPT:
-                span._.CONCEPT = span.root._.CONCEPT
-            else:
-                span._.CONCEPT = span._.modifier._.CONCEPT
-            
-            spans.append(span)
+    # if doc._.custom_chunk_iterator is not None:
+    for start, end, label in doc._.custom_chunk_iterator:
+        
+        # remove stopword tokens from left of the span
+        for index in range(start, end):
+            if doc[index].pos_ in ["PROPN", "NOUN", "PRON"]:
+                break
+            if doc[index].lower_ in cust_stopwords or doc[index].dep_ == "poss" or doc[index].is_stop:
+                start += 1
+
+        span = Span(doc, start, end, label=label)
+
+        if span.root._.CONCEPT:
+            span._.CONCEPT = span.root._.CONCEPT
+        else:
+            span._.CONCEPT = span._.get_span_CONCEPT
+
+        if span.root._.span_type:
+            span._.span_type = span.root._.span_type
+        else:
+            span._.span_type = span._.get_span_type
+        
+        spans.append(span)
                   
     for span in spans:
         yield span
@@ -155,16 +168,18 @@ def merge_custom_chunks(doc):
     doc (Doc): The Doc object.
     RETURNS (Doc): The Doc object with merged noun chunks.
     DOCS: https://spacy.io/api/pipeline-functions#merge_noun_chunks
+    DOCS: https://github.com/explosion/spaCy/blob/master/spacy/pipeline/functions.py 
     """
     if not doc.is_parsed:
         return doc
 
     with doc.retokenize() as retokenizer:
-        for np in doc._.custom_chunks:
-            attrs = {"tag": np.root.tag, 
-                     "dep": np.root.dep,
-                     "_" : {"span_type" : np._.span_type,
-                            "CONCEPT" : np._.CONCEPT}}
+        for span in doc._.custom_chunks:
 
-            retokenizer.merge(np, attrs=attrs)
+            attrs = {"tag": span.root.tag, 
+                     "dep": span.root.dep,
+                     "_" : {"span_type" : span._.get_span_type,
+                            "CONCEPT" : span._.get_span_CONCEPT}}
+
+            retokenizer.merge(span, attrs=attrs)
     return doc

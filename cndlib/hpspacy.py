@@ -1,7 +1,7 @@
 import spacy
-from spacy.tokens import Span, Token
+from spacy.tokens import Doc, Span, Token
 
-class hearst_patterns(object):
+class HearstPatterns(object):
 
     name = "hearst pattern matcher"
     
@@ -53,12 +53,6 @@ class hearst_patterns(object):
              hypernym, punct, {"LEMMA": "know"}, {"LEMMA": "as"}, det, hyponym
         ], "posn" : "first"},
 
-        {"label" : "such", "pattern" : [
-#                 '(such NP_\\w+ (, )?as (NP_\\w+ ?(, )?(and |or )?)+)',
-#                 'first'
-             {"LEMMA": "such"}, hypernym, punct, {"LEMMA": "as"}, det, hyponym
-        ], "posn" : "first"},
-
         {"label" : "include", "pattern" : [
 #                 '(NP_\\w+ (, )?include (NP_\\w+ ?(, )?(and |or )?)+)',
 #                 'first'
@@ -105,7 +99,7 @@ class hearst_patterns(object):
                 hypernym, punct, {"LEMMA" : "example"}, {"LEMMA" : "of"}, {"LEMMA" : "this"}, {"LEMMA" : "be"}, det, hyponym
             ], "posn" : "first"},
 
-            {"label" : ",type", "pattern" : [
+            {"label" : "type", "pattern" : [
 #                     '(NP_\\w+ (, )?type (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
                 hypernym, punct, {"LEMMA" : "type"}, punct, det, hyponym
@@ -200,9 +194,11 @@ class hearst_patterns(object):
                 hypernym, punct, {"LEMMA" : "like"}, det, hyponym,
             ], "posn" : "first"},
 
-            # repeat of such_as pattern in primary patterns???
+            {"label" : "such_NOUN_as", "pattern" : [
 #                     'such (NP_\\w+ (, )?as (NP_\\w+ ? (, )?(and |or )?)+)',
 #                     'first'
+                {"LEMMA" : "such"}, hypernym, punct, {"LEMMA": "as"}, det, hyponym
+            ], "posn" : "first"},
 
                 {"label" : "whether", "pattern" : [
 #                     '(NP_\\w+ (, )?whether (NP_\\w+ ? (, )?(and |or )?)+)',
@@ -347,7 +343,12 @@ class hearst_patterns(object):
         from spacy.matcher import Matcher
         self.matcher = Matcher(self.nlp.vocab, validate = True)
 
-        self.pairs = [] # set up dictionary containing pairs
+        Doc.set_extension("pairs", default = [], force = True) # set up dictionary containing pairs
+        Token.set_extension("is_hypernym", default = False, force = True)
+        Token.set_extension("has_hyponyms", default = [], force = True)
+        Token.set_extension("is_hyponym", default = False, force = True)
+        Token.set_extension("has_hypernym", default = "", force = True)
+        Token.set_extension("predicate", default = "", force = True)
 
         self.predicates = []
         self.first = []
@@ -414,11 +415,13 @@ class hearst_patterns(object):
 
             # hypernym recorded as True and list of hyponyms created 
             hypernym._.is_hypernym = True
+            hypernym._.predicate = predicate
             hypernym._.has_hyponyms.append(hyponym)
            
             # hyponym recorded as True and its hypernym is recorded
             hyponym._.is_hyponym = True
             hyponym._.has_hypernym = hypernym
+            hyponym._.predicate = predicate
 
             # iterate over conjunct list attached to hyponym
             for token in hyponym.conjuncts:   
@@ -426,13 +429,14 @@ class hearst_patterns(object):
                     hypernym._.has_hyponyms.append(token)
                     token._.is_hyponym = True
                     token._.has_hypernym = hypernym
+                    hyponym._.predicate = predicate
 
             hypernym_extended = doc[hypernym.left_edge.i : hypernym.i + 1]
             hyponym_extended = doc[hyponym.left_edge.i : hyponym.i + 1]
 
-            self.pairs.append((hypernym_extended, predicate, hyponym_extended)) 
+            doc._.pairs.append((predicate, hypernym_extended, hyponym_extended)) 
             for token in hyponym.conjuncts:   
                 if token != hypernym and token != None:
-                    self.pairs.append((hypernym_extended, predicate, doc[token.left_edge.i : token.i + 1]))
+                    doc._.pairs.append((predicate, hypernym_extended,  doc[token.left_edge.i : token.i + 1]))
 
         return doc
