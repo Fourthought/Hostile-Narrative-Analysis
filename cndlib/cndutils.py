@@ -7,7 +7,7 @@ from IPython.display import clear_output
 from hurry.filesize import size
 
 from spacy import displacy
-from visuals import sent_frame
+from cndlib.visuals import sent_frame
 
 class doubleQuoteDict(dict):
     

@@ -7,9 +7,9 @@ from collections.abc import MutableMapping, MutableSequence
 import pandas as pd
 
 #custom modules
-import pipeline
-import visuals
-import cndutils
+from cndlib import pipeline
+from cndlib import visuals
+from cndlib import cndutils
 
 class OratorMaster(MutableSequence):
 

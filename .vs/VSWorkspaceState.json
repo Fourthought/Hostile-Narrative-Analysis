@@ -1,6 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\cndlib"
   ],
+  "SelectedNode": "\\cndlib\\DepMatcher.py",
   "PreviewInSolutionExplorer": false
 }

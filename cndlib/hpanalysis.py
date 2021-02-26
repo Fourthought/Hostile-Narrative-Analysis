@@ -1,6 +1,6 @@
 from tqdm import tqdm
-import hpspacy
-import hpregex
+from cndlib import hpspacy
+from cndlib import hpregex
 import pandas as pd
 
 class hp_Analysis(object):
@@ -37,7 +37,7 @@ class hp_Analysis(object):
 
         for orator in iterable:
 
-            if orator.ref == "hitler":
+            if orator.ref in ["hitler"]:
                 continue
 
             self.hyponym_list.update()
@@ -58,6 +58,6 @@ class hp_Analysis(object):
         for orator in self.results:
             old = self.results[orator]['detected regex patterns']
             new = self.results[orator]['detected spaCy patterns']
-            self.results[orator]['improvement'] = f'{str(round(((new - old) / old) * 100, 0))}%'
+            #self.results[orator]['improvement'] = f'{str(round(((new - old) / old) * 100, 0))}%'
         
         self.results = pd.DataFrame(self.results)
