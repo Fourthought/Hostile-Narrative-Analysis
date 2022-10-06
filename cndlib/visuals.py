@@ -17,13 +17,20 @@ def display_side_by_side(dfs:list, captions:list, last = False):
     """
     
     output = ""
+
+    heading_properties = [('font-size', '18px')]
+
+    cell_properties = [('font-size', '16px')]
+
+    dfstyle = [dict(selector="th", props=heading_properties),
+               dict(selector="td", props=cell_properties)]
     
     combined = dict(zip(captions, dfs))
     
     for caption, df in combined.items():
 
         if last == False:
-            output += df.style.set_table_attributes("style='display:inline'"). \
+            output += df.style.set_table_attributes("style='display:inline'").\
                 set_caption(caption).\
                 _repr_html_()
             output += "\xa0\xa0\xa0"
