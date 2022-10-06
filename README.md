@@ -1,8 +1,6 @@
-# Conflict Narrative Detection Pipeline - CND Pipeline
+# Hostile Narrative Analysis Pipeline
 
-Guided by theories of violence from Peace Studies, this PhD research proposes a natural language processing (NLP) spaCy pipeline to enable an idea of “Conflict Narrative Detection”.
-
-In conceptualising Conflict Narrative Detection, we are guided by sociological theory for technological design. The defining theory we use is “cultural violence”, which seeks to explain the processes of violence legitimisation. Derived from this theory, we have developed a novel methodology for detecting and measuring cultural violence in natural language. This methodology provides a structure for the proposed NLP pipeline for which we have conducted several experiments to inform its technical development.
+Guided by the Cultural Violence from Peace Research, this pipeline rethinks aspects of hate speech detection as hostile narrative analysis
 
 The methodology and experimentation are structured are as follows (to be updated as the research develops):
 
