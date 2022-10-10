@@ -1,0 +1,1 @@
+outgroups = ['al Qaeda', 'Taliban', 'Usama bin Laden', 'the Egyptian Islamic Jihad', 'the Islamic Movement of Uzbekistan', 'North Korea', 'Iran', 'Iraq', 'axis of evil']
