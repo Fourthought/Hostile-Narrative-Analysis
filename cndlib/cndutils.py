@@ -4,7 +4,7 @@ import json
 import jsonlines
 import pickle
 from IPython.display import clear_output
-from hurry.filesize import size
+# from hurry.filesize import size
 
 from spacy import displacy
 from cndlib.visuals import sent_frame
@@ -32,27 +32,63 @@ def get_object_size(data):
     """
     return sys.getsizeof(pickle.dumps(data))
 
-def dump_jsonl(data, output_path, append=False):
+def check_for_jsonl_extension(filename):
+
+    filename, file_extension = os.path.splitext(filename)
+    return filename + '.jsonl'
+
+def does_filename_exist(filename):
+    return os.path.isfile(filename)
+
+
+def dump_jsonl(data, filename, append=False):
     """
     Write list of objects to a JSON lines file.
     """
+    
+    filename = check_for_jsonl_extension(filename)
+
+    if does_filename_exist(filename):
+        response = input(f"overwrite {filename} (y/n)")
+        if response.lower() != "y":
+            return f"{filename} already exists"
+    
     mode = 'a+' if append else 'w'
-    with open(output_path, mode, encoding='utf-8') as f:
+    with open(filename, mode, encoding='utf-8') as f:
         for line in data:
             json_record = json.dumps(line, ensure_ascii=False)
             f.write(json_record + '\n')
-    print('Wrote {} records to {}'.format(len(data), output_path))
+    print('Wrote {} records to {}'.format(len(data), filename))
 
-def load_jsonl(input_path) -> list:
+def load_jsonl(filename) -> list:
     """
     Read list of objects from a JSON lines file.
     """
     data = []
-    with open(input_path, 'r', encoding='utf-8') as f:
+
+    if not does_filename_exist(filename):
+        print(f"{filename} not found")
+        return None
+    
+    with open(filename, 'r', encoding='utf-8') as f:
         for line in f:
             data.append(json.loads(line.rstrip('\n|\r')))
-    print('Loaded {} records from {}'.format(len(data), input_path))
+    print('Loaded {} records from {}'.format(len(data), filename))
     return data
+
+def find_file(filename):
+    dir = os.getcwd()
+    while 'Hostile-Narrative-Analysis' in dir:
+
+        dir = os.path.dirname(dir)
+
+        for root, dirs, files in os.walk(dir):
+
+            if filename in files:
+                filepath = os.path.join(root, filename)
+
+                with open(filepath, encoding = "ISO-8859-1") as text:
+                    return text.read()          
 
 def dict_to_jsonl(path, file):
 
