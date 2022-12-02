@@ -66,6 +66,8 @@ def load_jsonl(filename) -> list:
     """
     data = []
 
+    filename = check_for_jsonl_extension(filename)
+
     if not does_filename_exist(filename):
         print(f"{filename} not found")
         return None
