@@ -30,11 +30,12 @@ import cndlib.schemautils as mk
 from cndlib import customchunks
 from cndlib.customchunks import merge_custom_chunks
 from cndlib.hpspacy import HearstPatterns
+from cndlib.cndutils import find_file
 
 
 class CND(object):
     # get dataset directory for supplementary datafiles
-    ROOT = r"C:\Users\spa1e17\OneDrive - University of Southampton\Hostile-Narrative-Analysis"
+    ROOT = r"/Users/stephenanningcorp/Library/CloudStorage/OneDrive-UniversityofSouthampton/Hostile-Narrative-Analysis"
     dataset_dir = os.path.join(ROOT, 'dataset')
     entity_corrections = "named_entity_corrections.json"
 
