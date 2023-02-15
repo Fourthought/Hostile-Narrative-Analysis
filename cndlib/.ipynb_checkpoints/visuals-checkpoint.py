@@ -41,8 +41,8 @@ def display_side_by_side(dfs:list, captions:list, last = False):
                 applymap('font-weight: bold', subset=pd.IndexSlice[len(df), :]).\
                 _repr_html_()
             output += "\xa0\xa0\xa0"
-
-    display(HTML(output))
+            
+    return display(HTML(output))
 
 def display_df(df, columns):
 

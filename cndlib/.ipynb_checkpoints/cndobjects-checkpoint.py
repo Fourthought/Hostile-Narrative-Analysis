@@ -332,19 +332,18 @@ class DatasetMaster(MutableMapping):
         create a summary array of all Orators() in the Dataset() object
         """
         
-        df = []
-        for orator in self.__iter__():
-            if isinstance(orator, Orator):
-                df.append([str(getattr(orator, attr)) for attr in DatasetMaster.attrs[:2]]) # get ref and name attrs
-                df[-1].append(len(orator)) # get text count
-                df[-1].append(len(str(orator))) # get word count
-                #df[-1].append(cndutils.get_object_size(orator)) # get file size
-            
-            else:
-                df.append([str(getattr(orator, attr)) for attr in DatasetMaster.attrs[:2]])
-                df[-1].append(len(orator))
+        df = dict()
+        for orator in self.orators_dict.values():
+            print(orator)
+            for document in orator:
+                print(document)
+#                 df["ref"] = document["ref"]
+#                 df["datestamp"] = document["datestamp"]
+#                 df["title"] = document["title"]
+#                 df["word count"] = document["wordcount"]
+#                 df["sentence count"] = len(document["sentences"])
 
-        return df
+#         return df
 
     @property
     def text_summary(self):
@@ -505,7 +504,7 @@ class SentimentData(DatasetMaster):
         return os.path.join(self.filepath, self.filename)
         
     @property
-    def summarise(self):
+    def summarise_sentiment(self):
     
         for orator in self.values():
             for document in orator:
@@ -522,8 +521,8 @@ class SentimentData(DatasetMaster):
                 yield line
                 
     @property
-    def df(self):
-        return pd.DataFrame(self.summarise)
+    def sentiment_summary(self):
+        return pd.DataFrame(self.summarise_sentiment)               
     
     @property
     def reference(self, orator, text):
