@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="99ce2580-b375-4eff-a12c-5425a2007ca6" name="Default Changelist" comment="09/10/2022 quantitative analysis folder reorg">
+      <change beforePath="$PROJECT_DIR$/.idea/Hostile-Narrative-Analysis.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Hostile-Narrative-Analysis.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Obj 1 - pre-processing/Experiment 1.3 - Tokenizing noun_chunks/Custom Noun Chunking.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Obj 1 - pre-processing/Experiment 1.3 - Tokenizing noun_chunks/Custom Noun Chunking.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Obj 2 - detect ingroup and outgroup of a text/Experiment 1.5 -Dependency Matching spaCy_v3.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Obj 2 - detect ingroup and outgroup of a text/Experiment 1.5 -Dependency Matching spaCy_v3.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Obj 2 - detect ingroup and outgroup of a text/Experiment 1.5 -Dependency Matching.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Obj 2 - detect ingroup and outgroup of a text/Experiment 1.5 -Dependency Matching.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Obj 3 - detect ingroup elevation phrases/Objective 2 - Detect Ingroup Elevation and Outgroup Othering Statements.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Obj 3 - detect ingroup elevation phrases/Objective 2 - Detect Ingroup Elevation and Outgroup Othering Statements.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Quantitative Analysis/Experiment 4 - Assessing Transformers/Assessing Detoxify.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Quantitative Analysis/Experiment 4 - Assessing Transformers/Assessing Detoxify.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Text Analysis/.ipynb_checkpoints/Untitled-checkpoint.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Text Analysis/.ipynb_checkpoints/dependency_relations-checkpoint.py" beforeDir="false" afterPath="$PROJECT_DIR$/Text Analysis/.ipynb_checkpoints/dependency_relations-checkpoint.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Text Analysis/Untitled.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Text Analysis/dependency_objects.py" beforeDir="false" afterPath="$PROJECT_DIR$/Text Analysis/dependency_objects.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Text Analysis/dependency_relations.py" beforeDir="false" afterPath="$PROJECT_DIR$/Text Analysis/dependency_relations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cndlib/generate_heatmap.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cndlib/pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/cndlib/pipeline.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="main" />
+      </list>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="1oZfY5ioQCxs0u9e4INUXVp8zDS" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\spa1e17\OneDrive - University of Southampton\Hostile-Narrative-Analysis\Obj 1 - detect ingroup and outgroup of a text" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="DepMatcher" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Hostile-Narrative-Analysis" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cndlib" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cndlib/DepMatcher.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.DepMatcher" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="99ce2580-b375-4eff-a12c-5425a2007ca6" name="Default Changelist" comment="" />
+      <created>1613499081591</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1613499081591</updated>
+      <workItem from="1613499086469" duration="1875000" />
+      <workItem from="1613502975576" duration="1253000" />
+      <workItem from="1613504260551" duration="19440000" />
+      <workItem from="1613645697955" duration="49997000" />
+      <workItem from="1614248473720" duration="1084000" />
+      <workItem from="1614365630103" duration="2218000" />
+      <workItem from="1614698244661" duration="36000" />
+      <workItem from="1614699226660" duration="2395000" />
+      <workItem from="1615377361628" duration="673000" />
+      <workItem from="1615378058384" duration="1178000" />
+      <workItem from="1615390681036" duration="3784000" />
+      <workItem from="1615462368487" duration="8000" />
+      <workItem from="1615462403612" duration="49000" />
+      <workItem from="1620684631524" duration="1669000" />
+      <workItem from="1665062040405" duration="2814000" />
+      <workItem from="1665064978870" duration="16226000" />
+      <workItem from="1673626553899" duration="1007000" />
+    </task>
+    <task id="LOCAL-00001" summary="26/02/2021 Update">
+      <created>1614366522133</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1614366522133</updated>
+    </task>
+    <task id="LOCAL-00002" summary="26/02/2021 Update">
+      <created>1614366754133</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1614366754133</updated>
+    </task>
+    <task id="LOCAL-00003" summary="06/10/2022 Update">
+      <created>1665062980407</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1665062980407</updated>
+    </task>
+    <task id="LOCAL-00004" summary="06/10/2022 Update">
+      <created>1665063791948</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1665063791948</updated>
+    </task>
+    <task id="LOCAL-00005" summary="06/10/2022 Update">
+      <created>1665063880971</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1665063880972</updated>
+    </task>
+    <task id="LOCAL-00006" summary="06/10/2022 Update">
+      <created>1665063917979</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1665063917979</updated>
+    </task>
+    <task id="LOCAL-00007" summary="06/10/2022 Update">
+      <created>1665064163246</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1665064163246</updated>
+    </task>
+    <task id="LOCAL-00008" summary="06/10/2022 Update">
+      <created>1665064286405</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1665064286405</updated>
+    </task>
+    <task id="LOCAL-00009" summary="06/10/2022 Update">
+      <created>1665065042576</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1665065042576</updated>
+    </task>
+    <task id="LOCAL-00010" summary="06/10/2022 Update">
+      <created>1665065049765</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1665065049765</updated>
+    </task>
+    <task id="LOCAL-00011" summary="06/10/2022 Update">
+      <created>1665066220121</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1665066220121</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Update">
+      <created>1665068585775</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1665068585775</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Update">
+      <created>1665295724157</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1665295724157</updated>
+    </task>
+    <task id="LOCAL-00014" summary="09/10/2022 quantitative analysis folder reorg">
+      <created>1665313342904</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1665313342904</updated>
+    </task>
+    <task id="LOCAL-00015" summary="09/10/2022 quantitative analysis folder reorg">
+      <created>1665313355322</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1665313355322</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="26/02/2021 Update" />
+    <MESSAGE value="06/10/2022 Update" />
+    <MESSAGE value="Update" />
+    <MESSAGE value="09/10/2022 quantitative analysis folder reorg" />
+    <option name="LAST_COMMIT_MESSAGE" value="09/10/2022 quantitative analysis folder reorg" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Hostile_Narrative_Analysis$DepMatcher.coverage" NAME="DepMatcher Coverage Results" MODIFIED="1665405452579" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cndlib" />
+  </component>
+</project>

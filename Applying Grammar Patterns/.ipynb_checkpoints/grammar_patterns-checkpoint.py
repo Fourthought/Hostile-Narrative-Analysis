@@ -8,7 +8,7 @@ from dependency_objects import _subject, _subject_passive, _object, _direct_obje
 from dependency_objects import _prepositional_object, coordination_deps, _adposition, preposition_deps, prepositional_object_deps, adverbial_deps
 from dependency_objects import _adjective_complement, _verb_complement, _dative
 NOUN = {"POS": {"IN": ["NOUN", "PROPN", "PRON"]}}
-VERB = {"POS": "VERB"}
+VERB = {"POS": "VERB", "DEP": {"NOT_IN": ["relcl", "pcomp"]}}
 ROOT = {"POS": "VERB", "DEP": "ROOT"}
 ADJ = {"POS": "ADJ"}
 ADV = {"POS": "ADV"}
